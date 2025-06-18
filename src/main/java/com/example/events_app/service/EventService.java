@@ -1,15 +1,20 @@
 package com.example.events_app.service;
 
 import com.example.events_app.dto.EventDTO;
+import com.example.events_app.dto.EventFilterDTO;
 import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventType;
 import com.example.events_app.exceptions.NoSuchException;
+import com.example.events_app.filter.EventSpecification;
 import com.example.events_app.mapper.EventMapper;
 import com.example.events_app.mapper.EventTypeMapper;
 import com.example.events_app.repository.EventRepository;
 import com.example.events_app.repository.EventTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,5 +107,13 @@ public class EventService {
 
         event.setConducted(conducted);
         eventRepository.save(event);
+    }
+
+    public Page<EventDTO> searchEvents(EventFilterDTO filter) {
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize());
+        Page<Event> eventsPage = eventRepository.findAll(EventSpecification.withFilter(filter), pageable);
+
+        // Используем маппер из MapStruct
+        return eventsPage.map(eventMapper::toDto);
     }
 }
