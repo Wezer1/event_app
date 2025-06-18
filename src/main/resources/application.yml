@@ -1,0 +1,26 @@
+springdoc:
+  swagger-ui:
+    enabled: true
+
+jwt:
+  secret: mySpringProject
+  header: Authorization
+  expiration: 86400
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/trpo
+    username: user
+    password: user
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:db.changelog/db.changelog-master.xml
+    enabled: true
+
+
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        security: DEBUG # Уровень логирования для Spring Security
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} - %level [%thread] %logger : %msg%n" # Формат вывода логов

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="add-indexes-user-bonus-history" author="uPagge">
+        <createIndex tableName="user_bonus_history" indexName="idx_user_bonus_user">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="user_bonus_history" indexName="idx_user_bonus_type">
+            <column name="bonus_type_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

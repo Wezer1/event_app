@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <!-- Добавление колонки event_type_id в таблицу events -->
+    <changeSet id="add-column-event-type-id-to-events" author="uPagge">
+        <addColumn tableName="events">
+            <column name="event_type_id" type="int">
+                <constraints nullable="true"/> <!-- или false, если сразу заполняете данные -->
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Добавление внешнего ключа из events к event_types -->
+    <changeSet id="add-foreign-key-to-event-types" author="uPagge">
+        <addForeignKeyConstraint baseColumnNames="event_type_id"
+                                 baseTableName="events"
+                                 constraintName="fk_event_event_type"
+                                 referencedColumnNames="id"
+                                 referencedTableName="event_types"/>
+    </changeSet>
+
+</databaseChangeLog>

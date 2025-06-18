@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  postgres_db:
+    image: postgres:15               # Используем образ PostgreSQL версии 15
+    container_name: postgres_db     # Название контейнера
+    environment:
+      POSTGRES_USER: user         # Устанавливаем имя пользователя
+      POSTGRES_PASSWORD: user # Устанавливаем пароль
+      POSTGRES_DB: trpo             # Название базы данных
+    ports:
+      - "5432:5432"                   # Открываем порт 5432 для подключения
+    volumes:
+      - pg_data:/var/lib/postgresql/data  # Сохраняем данные на локальном диске
+
+volumes:
+  pg_data:                           # Определяем том для данных PostgreSQL
