@@ -41,6 +41,9 @@ public class Event {
     @Column(name = "conducted", nullable = false)
     private boolean conducted = false;
 
+    @Column(name = "preview")
+    private String preview;
+
     @ManyToOne
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "event_type_id", nullable = true) // nullable = false при необходимости

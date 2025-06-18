@@ -5,7 +5,7 @@ import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventParticipant;
 import com.example.events_app.entity.EventType;
 import com.example.events_app.entity.User;
-import com.example.events_app.service.EventService;
+//import com.example.events_app.service.EventService;
 import com.example.events_app.service.UserService;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Context;
