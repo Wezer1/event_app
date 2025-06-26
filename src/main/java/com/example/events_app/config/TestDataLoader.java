@@ -71,7 +71,7 @@ public class TestDataLoader implements CommandLineRunner {
                 event.setUpdatedAt(now);
                 event.setConducted(false);
                 event.setEventType(type);
-
+                event.setUserId(1);
                 events.add(event);
             }
 

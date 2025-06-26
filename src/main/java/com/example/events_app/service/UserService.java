@@ -9,6 +9,7 @@ import com.example.events_app.exceptions.NoSuchException;
 import com.example.events_app.mapper.UserMapper;
 import com.example.events_app.mapper.UserRegisterRequestMapper;
 import com.example.events_app.mapper.UserRegisterResponseMapper;
+import com.example.events_app.repository.EventParticipantRepository;
 import com.example.events_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserRegisterRequestMapper userRegisterRequestMapper;
     private final UserRegisterResponseMapper userRegisterResponseMapper;
+    private final EventParticipantRepository eventParticipantRepository;
 
     @Transactional
     public List<UserRegistrationResponseDto> getAllUsers() {
@@ -66,6 +68,7 @@ public class UserService {
             existingUser.setLogin(userRegistrationRequestDto.getLogin());
             existingUser.setPassword(userRegistrationRequestDto.getPassword());
             existingUser.setRole(userRegistrationRequestDto.getRole());
+
 
             return userRegisterResponseMapper.toRegistrationResponseDto(userRepository.save(existingUser));
         }

@@ -10,4 +10,6 @@ import java.util.List;
 public interface EventParticipantRepository extends JpaRepository<EventParticipant, EventParticipantId> {
     List<EventParticipant> findById_UserId(Integer userId);
     List<EventParticipant> findById_EventId(Integer userId);
+
+    Integer countEventParticipantByUserId (Integer userId);
 }

@@ -4,27 +4,26 @@ import org.mapstruct.*;
 import com.example.events_app.dto.EventParticipantDTO;
 import com.example.events_app.entity.EventParticipant;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, EventMapper.class})
+@Mapper(componentModel = "spring", uses = {UserToShortMapper.class, EventToShortMapper.class})
 public abstract class EventParticipantMapper {
 
+    // Преобразование DTO -> Entity (если нужно)
     @Mappings({
-            @Mapping(source = "userId", target = "id.userId"),
-            @Mapping(source = "eventId", target = "id.eventId"),
+            @Mapping(source = "userId.id", target = "id.userId"),
+            @Mapping(source = "eventId.id", target = "id.eventId"),
             @Mapping(source = "status", target = "status"),
             @Mapping(source = "createdAt", target = "createdAt")
     })
     public abstract EventParticipant toEntity(EventParticipantDTO dto);
 
+    // Преобразование Entity -> DTO
     @Mappings({
-            @Mapping(source = "id.userId", target = "userId"),
-            @Mapping(source = "id.eventId", target = "eventId"),
+            @Mapping(source = "id.userId", target = "userId.id"),
+            @Mapping(source = "id.eventId", target = "eventId.id"),
+            @Mapping(source = "user", target = "userId"),   // ← вызывает UserToShortMapper.userToUserShortDTO()
+            @Mapping(source = "event", target = "eventId"), // ← вызывает EventToShortMapper.eventToEventShortDTO()
             @Mapping(source = "status", target = "status"),
-            @Mapping(source = "createdAt", target = "createdAt"),
-
-            // ← Новые поля из связанных сущностей:
-            @Mapping(source = "user.firstName", target = "firstName"),  // ← firstName + lastName
-            @Mapping(source = "user.lastName", target = "lastName"),   // ← используется в fullName
-            @Mapping(source = "event.title", target = "eventName")     // ← название события
+            @Mapping(source = "createdAt", target = "createdAt")
     })
     public abstract EventParticipantDTO toDto(EventParticipant entity);
 }
