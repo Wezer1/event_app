@@ -43,15 +43,27 @@ public class EventController {
 
     @GetMapping("/search")
     @Operation(
-            summary = "Поиск событий по фильтру",
-            description = "Позволяет искать события по ключевым словам, типу мероприятия и диапазону дат"
+            summary = "Search events by filters",
+            description = "Allows searching events by keyword, event type ID, start date range. Supports pagination.",
+            externalDocs = @ExternalDocumentation(description = "Example request", url = "http://localhost:8080/api/events/search?keyword=AI&eventTypeId=1&startDateFrom=2025-01-01T00:00:00&startDateTo=2025-12-31T23:59:59&page=0&size=10"),
+            parameters = {
+                    @Parameter(name = "keyword", description = "Keyword to search in title, description, location and organization name", example = "AI Conference"),
+                    @Parameter(name = "eventTypeId", description = "ID of the event type", example = "1"),
+                    @Parameter(name = "startDateFrom", description = "Start date filter (from)", example = "2025-01-01T00:00:00"),
+                    @Parameter(name = "startDateTo", description = "Start date filter (to)", example = "2025-12-31T23:59:59"),
+                    @Parameter(name = "page", description = "Page number", example = "0"),
+                    @Parameter(name = "size", description = "Page size", example = "10")
+            }
     )
     @ApiResponse(
             responseCode = "200",
             description = "OK",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = EventDTO.class)
+                    schema = @Schema(implementation = EventDTO.class),
+                    examples = @ExampleObject(
+                            value = "{ 'content': [ { 'id': 1, 'title': 'AI Conference', 'description': 'Discussion about AI future', 'startTime': '2025-04-10T10:00:00', 'endTime': '2025-04-10T18:00:00', 'location': 'Moscow', 'eventType': { 'id': 1, 'name': 'Conference' }, 'userId': 1 } ], 'totalElements': 1, 'totalPages': 1, 'size': 10, 'number': 0 }"
+                    )
             )
     )
     @PreAuthorize("hasAuthority('users:read')")

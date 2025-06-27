@@ -1,16 +1,23 @@
 package com.example.events_app.service;
 
 
+import com.example.events_app.dto.user.UserDTO;
+import com.example.events_app.dto.user.UserFilterDTO;
 import com.example.events_app.dto.user.UserRegistrationRequestDto;
 import com.example.events_app.dto.user.UserRegistrationResponseDto;
 import com.example.events_app.entity.User;
 import com.example.events_app.exceptions.NoSuchException;
+import com.example.events_app.filter.UserSpecification;
+import com.example.events_app.mapper.user.UserMapper;
 import com.example.events_app.mapper.user.UserRegisterRequestMapper;
 import com.example.events_app.mapper.user.UserRegisterResponseMapper;
 import com.example.events_app.repository.EventParticipantRepository;
 import com.example.events_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +33,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserRegisterRequestMapper userRegisterRequestMapper;
     private final UserRegisterResponseMapper userRegisterResponseMapper;
-    private final EventParticipantRepository eventParticipantRepository;
-
+    private final UserMapper userMapper;
     @Transactional
     public List<UserRegistrationResponseDto> getAllUsers() {
         log.info("Get all Users");
@@ -79,5 +85,10 @@ public class UserService {
             throw new NoSuchException("There is no user with ID = "+ userId + " in Database");
         }
         userRepository.deleteById(userId);
+    }
+
+    public Page<UserDTO> searchUsers(UserFilterDTO filter, Pageable pageable) {
+        return userRepository.findAll(UserSpecification.withFilter(filter), pageable)
+                .map(userMapper::toDto);
     }
 }
