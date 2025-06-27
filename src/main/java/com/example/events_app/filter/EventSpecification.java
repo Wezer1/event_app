@@ -1,6 +1,6 @@
 package com.example.events_app.filter;
 
-import com.example.events_app.dto.EventFilterDTO;
+import com.example.events_app.dto.event.EventFilterDTO;
 import com.example.events_app.entity.Event;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;

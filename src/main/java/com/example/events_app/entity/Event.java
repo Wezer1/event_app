@@ -45,4 +45,7 @@ public class Event {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "event_type_id", nullable = true) // nullable = false при необходимости
     private EventType eventType;
+
+    @Column(name = "user_id", columnDefinition = "1")
+    private Integer userId;
 }

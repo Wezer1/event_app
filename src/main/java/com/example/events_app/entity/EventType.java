@@ -18,4 +18,7 @@ public class EventType {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "events_count")
+    private Integer eventsCount;
 }

@@ -1,7 +1,7 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.AuthRequestDTO;
-import com.example.events_app.dto.AuthResponseDTO;
+import com.example.events_app.dto.user.AuthRequestDTO;
+import com.example.events_app.dto.user.AuthResponseDTO;
 import com.example.events_app.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

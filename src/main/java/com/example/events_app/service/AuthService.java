@@ -1,7 +1,7 @@
 package com.example.events_app.service;
 
-import com.example.events_app.dto.AuthRequestDTO;
-import com.example.events_app.dto.AuthResponseDTO;
+import com.example.events_app.dto.user.AuthRequestDTO;
+import com.example.events_app.dto.user.AuthResponseDTO;
 import com.example.events_app.entity.User;
 import com.example.events_app.repository.UserRepository;
 import com.example.events_app.security.JwtTokenProvider;

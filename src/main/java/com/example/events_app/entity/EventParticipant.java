@@ -1,5 +1,6 @@
 package com.example.events_app.entity;
 
+import com.example.events_app.model.EventParticipantStatus;
 import lombok.*;
 
 import jakarta.persistence.*;
@@ -17,18 +18,19 @@ public class EventParticipant {
     @EmbeddedId
     private EventParticipantId id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "event_id", insertable = false, updatable = false)
     private Event event;
 
     @Column(name = "status", nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private EventParticipantStatus status;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

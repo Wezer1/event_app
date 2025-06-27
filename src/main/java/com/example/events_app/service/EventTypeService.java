@@ -1,9 +1,9 @@
 package com.example.events_app.service;
 
-import com.example.events_app.dto.EventTypeDTO;
+import com.example.events_app.dto.event.EventTypeDTO;
 import com.example.events_app.entity.EventType;
 import com.example.events_app.exceptions.NoSuchException;
-import com.example.events_app.mapper.EventTypeMapper;
+import com.example.events_app.mapper.event.EventTypeMapper;
 import com.example.events_app.repository.EventTypeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

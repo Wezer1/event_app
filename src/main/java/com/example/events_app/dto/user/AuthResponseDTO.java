@@ -1,4 +1,4 @@
-package com.example.events_app.dto;
+package com.example.events_app.dto.user;
 
 import com.example.events_app.model.Role;
 import jakarta.validation.constraints.NotBlank;

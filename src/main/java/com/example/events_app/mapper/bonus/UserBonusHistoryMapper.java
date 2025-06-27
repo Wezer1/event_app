@@ -1,6 +1,6 @@
-package com.example.events_app.mapper;
+package com.example.events_app.mapper.bonus;
 
-import com.example.events_app.dto.UserBonusHistoryDTO;
+import com.example.events_app.dto.bonus.UserBonusHistoryDTO;
 import com.example.events_app.entity.UserBonusHistory;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="add-foreign-key-user-to-events" author="uPagge">
+        <!-- 1. Добавляем новую колонку user_id в таблицу events -->
+        <addColumn tableName="events">
+            <column name="user_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <!-- 2. Добавляем внешний ключ: events.user_id -> users.id -->
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="events"
+                                 constraintName="fk_events_users"
+                                 referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+
+</databaseChangeLog>

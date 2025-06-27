@@ -1,7 +1,7 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.UserRegistrationRequestDto;
-import com.example.events_app.dto.UserRegistrationResponseDto;
+import com.example.events_app.dto.user.UserRegistrationRequestDto;
+import com.example.events_app.dto.user.UserRegistrationResponseDto;
 import com.example.events_app.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +14,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")

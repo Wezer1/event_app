@@ -1,6 +1,6 @@
-package com.example.events_app.mapper;
+package com.example.events_app.mapper.user;
 
-import com.example.events_app.dto.UserRegistrationRequestDto;
+import com.example.events_app.dto.user.UserRegistrationRequestDto;
 import com.example.events_app.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

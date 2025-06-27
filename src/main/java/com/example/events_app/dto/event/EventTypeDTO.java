@@ -1,4 +1,4 @@
-package com.example.events_app.dto;
+package com.example.events_app.dto.event;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -17,5 +17,9 @@ public class EventTypeDTO {
     @NotBlank(message = "Name is required")
     @Size(max = 255)
     private String name;
+
     private String description;
+
+    private Integer eventsCount;
+
 }

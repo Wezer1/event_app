@@ -1,7 +1,7 @@
 package com.example.events_app.config;
 
-import com.example.events_app.dto.UserRegistrationRequestDto;
-import com.example.events_app.mapper.UserRegisterRequestMapper;
+import com.example.events_app.dto.user.UserRegistrationRequestDto;
+import com.example.events_app.mapper.user.UserRegisterRequestMapper;
 import com.example.events_app.model.Role;
 import com.example.events_app.repository.UserRepository;
 

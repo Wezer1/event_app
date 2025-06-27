@@ -1,6 +1,7 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.EventParticipantDTO;
+import com.example.events_app.dto.event.EventParticipantDTO;
+import com.example.events_app.dto.RegisterOrUnregisterRequest;
 import com.example.events_app.service.EventParticipantService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class EventParticipantController {
 
     private final EventParticipantService eventParticipantService;
 
-    @GetMapping
+    @GetMapping("/")
     @Operation(summary = "Получить всех участников", description = "Возвращает список всех заявок на мероприятия")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventParticipantDTO.class)))
     @PreAuthorize("hasAuthority('users:write')")
@@ -57,22 +58,20 @@ public class EventParticipantController {
         return eventParticipantService.updateParticipantStatus(userId, eventId, status);
     }
 
-    @DeleteMapping("/{userId}/{eventId}")
-    @Operation(summary = "Удалить запись на событие", description = "Отменяет запись пользователя на мероприятие")
+    @PostMapping("/unregister")
+    @Operation(summary = "Отменить запись на событие", description = "Отменяет запись пользователя на мероприятие")
     @ApiResponse(responseCode = "200", description = "OK")
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<Void> deleteParticipant(
-            @PathVariable Integer userId,
-            @PathVariable Integer eventId) {
-        eventParticipantService.removeParticipant(userId, eventId);
+    public ResponseEntity<Void> unregister(@RequestBody RegisterOrUnregisterRequest request) {
+        eventParticipantService.removeParticipant(request.getUserId(), request.getEventId());
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/user/{userId}/event/{eventId}")
+    @PostMapping("/register")
     @Operation(summary = "Записаться на событие", description = "Позволяет пользователю подать заявку на участие в событии")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventParticipantDTO.class)))
-    @PreAuthorize("hasAuthority('users:read')")
-    public EventParticipantDTO register(@PathVariable Integer userId, @PathVariable Integer eventId) {
-        return eventParticipantService.registerUserForEvent(userId, eventId);
+    @PreAuthorize("hasAuthority('users:write')")
+    public EventParticipantDTO register(@RequestBody RegisterOrUnregisterRequest request) {
+        return eventParticipantService.registerUserForEvent(request.getUserId(), request.getEventId());
     }
 }
