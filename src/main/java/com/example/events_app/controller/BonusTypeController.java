@@ -1,6 +1,6 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.BonusTypeDTO;
+import com.example.events_app.dto.bonus.BonusTypeDTO;
 import com.example.events_app.service.BonusTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

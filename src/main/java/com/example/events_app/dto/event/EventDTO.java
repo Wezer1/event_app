@@ -1,7 +1,6 @@
-package com.example.events_app.dto;
+package com.example.events_app.dto.event;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

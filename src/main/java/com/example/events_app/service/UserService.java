@@ -1,14 +1,12 @@
 package com.example.events_app.service;
 
 
-import com.example.events_app.dto.UserDTO;
-import com.example.events_app.dto.UserRegistrationRequestDto;
-import com.example.events_app.dto.UserRegistrationResponseDto;
+import com.example.events_app.dto.user.UserRegistrationRequestDto;
+import com.example.events_app.dto.user.UserRegistrationResponseDto;
 import com.example.events_app.entity.User;
 import com.example.events_app.exceptions.NoSuchException;
-import com.example.events_app.mapper.UserMapper;
-import com.example.events_app.mapper.UserRegisterRequestMapper;
-import com.example.events_app.mapper.UserRegisterResponseMapper;
+import com.example.events_app.mapper.user.UserRegisterRequestMapper;
+import com.example.events_app.mapper.user.UserRegisterResponseMapper;
 import com.example.events_app.repository.EventParticipantRepository;
 import com.example.events_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

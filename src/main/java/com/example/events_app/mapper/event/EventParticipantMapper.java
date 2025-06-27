@@ -1,7 +1,8 @@
-package com.example.events_app.mapper;
+package com.example.events_app.mapper.event;
 
+import com.example.events_app.mapper.user.UserToShortMapper;
 import org.mapstruct.*;
-import com.example.events_app.dto.EventParticipantDTO;
+import com.example.events_app.dto.event.EventParticipantDTO;
 import com.example.events_app.entity.EventParticipant;
 
 @Mapper(componentModel = "spring", uses = {UserToShortMapper.class, EventToShortMapper.class})

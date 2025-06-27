@@ -1,7 +1,7 @@
-package com.example.events_app.mapper;
+package com.example.events_app.mapper.event;
 
-import com.example.events_app.dto.EventDTO;
-import com.example.events_app.dto.EventShortDTO;
+import com.example.events_app.dto.event.EventDTO;
+import com.example.events_app.dto.event.EventShortDTO;
 import com.example.events_app.entity.Event;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -14,4 +14,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Modifying
     @Query("UPDATE User u SET u.registeredEventsCount = u.registeredEventsCount + 1 WHERE u.id = :userId")
     void incrementRegisteredEventsCount(@Param("userId") Integer userId);
+
+    @Modifying
+    @Query("UPDATE User u SET u.totalBonusPoints = u.totalBonusPoints + :points WHERE u.id = :userId")
+    void updateTotalBonusPoints(@Param("userId") Integer userId, @Param("points") int points);
+
+
 }

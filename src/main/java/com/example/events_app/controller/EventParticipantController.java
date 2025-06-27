@@ -1,6 +1,6 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.EventParticipantDTO;
+import com.example.events_app.dto.event.EventParticipantDTO;
 import com.example.events_app.dto.RegisterOrUnregisterRequest;
 import com.example.events_app.service.EventParticipantService;
 import io.swagger.v3.oas.annotations.tags.Tag;

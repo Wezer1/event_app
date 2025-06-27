@@ -1,6 +1,5 @@
 package com.example.events_app.config;
 
-import com.example.events_app.dto.EventTypeDTO;
 import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventType;
 import com.example.events_app.repository.EventRepository;
@@ -8,7 +7,6 @@ import com.example.events_app.repository.EventTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

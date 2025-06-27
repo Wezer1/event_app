@@ -35,8 +35,8 @@ public class User {
     private Role role;
 
     @Column(name = "registered_events_count")
-    private Integer registeredEventsCount;
+    private Integer registeredEventsCount = 0;
 
     @Column(name = "total_bonus_points")
-    private Integer totalBonusPoints;
+    private Integer totalBonusPoints = 0;
 }

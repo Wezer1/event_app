@@ -1,5 +1,6 @@
-package com.example.events_app.dto;
+package com.example.events_app.dto.event;
 
+import com.example.events_app.dto.user.UserShortDTO;
 import com.example.events_app.model.EventParticipantStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;

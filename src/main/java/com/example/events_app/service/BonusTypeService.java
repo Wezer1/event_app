@@ -1,9 +1,9 @@
 package com.example.events_app.service;
 
-import com.example.events_app.dto.BonusTypeDTO;
+import com.example.events_app.dto.bonus.BonusTypeDTO;
 import com.example.events_app.entity.BonusType;
 import com.example.events_app.exceptions.NoSuchException;
-import com.example.events_app.mapper.BonusTypeMapper;
+import com.example.events_app.mapper.bonus.BonusTypeMapper;
 import com.example.events_app.repository.BonusTypeRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;

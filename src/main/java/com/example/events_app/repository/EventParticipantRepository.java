@@ -1,6 +1,5 @@
 package com.example.events_app.repository;
 
-import com.example.events_app.dto.EventParticipantDTO;
 import com.example.events_app.entity.EventParticipant;
 import com.example.events_app.entity.EventParticipantId;
 import org.springframework.data.jpa.repository.JpaRepository;

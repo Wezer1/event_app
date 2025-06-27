@@ -1,4 +1,4 @@
-package com.example.events_app.dto;
+package com.example.events_app.dto.bonus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

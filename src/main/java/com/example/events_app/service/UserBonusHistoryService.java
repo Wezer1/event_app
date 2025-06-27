@@ -1,10 +1,10 @@
 package com.example.events_app.service;
 
-import com.example.events_app.dto.UserBonusHistoryDTO;
+import com.example.events_app.dto.bonus.UserBonusHistoryDTO;
 import com.example.events_app.entity.User;
 import com.example.events_app.entity.UserBonusHistory;
 import com.example.events_app.exceptions.NoSuchException;
-import com.example.events_app.mapper.UserBonusHistoryMapper;
+import com.example.events_app.mapper.bonus.UserBonusHistoryMapper;
 import com.example.events_app.repository.UserBonusHistoryRepository;
 import com.example.events_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -53,14 +53,22 @@ public class UserBonusHistoryService {
 
         LocalDateTime now = LocalDateTime.now();
         dto.setCreatedAt(now);
-        // Проверка на наличие userId
-        if (dto.getUserId() == null) {
+
+        Integer userId = dto.getUserId();
+        if (userId == null) {
             throw new NoSuchException("userId is null");
         }
-        Optional<User> userOptional = Optional.ofNullable(userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new NoSuchException("There is no user with ID = "+ dto.getUserId() + " in Database")));
 
+        // Проверяем существование пользователя
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchException("There is no user with ID = " + userId));
+
+        // Сохраняем историю бонуса
         UserBonusHistory saved = repository.save(mapper.toEntity(dto));
+
+        // Обновляем общий баланс
+        int bonusValue = Optional.ofNullable(dto.getAmount()).orElse(0);
+        user.setTotalBonusPoints(user.getTotalBonusPoints()+bonusValue);
         return mapper.toDto(saved);
     }
 
@@ -83,11 +91,23 @@ public class UserBonusHistoryService {
     @Transactional
     public void delete(Integer id) {
         log.info("Deleting bonus history with ID: {}", id);
-        if (!repository.existsById(id)) {
-            throw new NoSuchException("Bonus history not found with ID: " + id);
-        }
+
+        UserBonusHistory history = repository.findById(id)
+                .orElseThrow(() -> new NoSuchException("Bonus history not found with ID: " + id));
+
+        Integer userId = history.getUser().getId();
+        int bonusValue = Optional.ofNullable(history.getAmount()).orElse(0);
+
+        // Удаляем запись
         repository.deleteById(id);
+
+        // Уменьшаем общий баланс
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchException("There is no user with ID = " + userId));
+        user.setTotalBonusPoints(user.getTotalBonusPoints()-bonusValue);
+
     }
+
 
     @Transactional
     public void activateBonus(Integer id) {

@@ -1,6 +1,6 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.UserBonusHistoryDTO;
+import com.example.events_app.dto.bonus.UserBonusHistoryDTO;
 import com.example.events_app.service.UserBonusHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

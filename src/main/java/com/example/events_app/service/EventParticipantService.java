@@ -1,15 +1,15 @@
 package com.example.events_app.service;
 
-import com.example.events_app.dto.EventParticipantDTO;
-import com.example.events_app.dto.EventShortDTO;
-import com.example.events_app.dto.UserShortDTO;
+import com.example.events_app.dto.event.EventParticipantDTO;
+import com.example.events_app.dto.event.EventShortDTO;
+import com.example.events_app.dto.user.UserShortDTO;
 import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventParticipant;
 import com.example.events_app.entity.EventParticipantId;
 import com.example.events_app.entity.User;
 import com.example.events_app.exceptions.AlreadyExistsException;
 import com.example.events_app.exceptions.NoSuchException;
-import com.example.events_app.mapper.EventParticipantMapper;
+import com.example.events_app.mapper.event.EventParticipantMapper;
 import com.example.events_app.model.EventParticipantStatus;
 import com.example.events_app.repository.EventParticipantRepository;
 import com.example.events_app.repository.EventRepository;
@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

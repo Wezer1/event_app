@@ -1,13 +1,13 @@
 package com.example.events_app.service;
 
-import com.example.events_app.dto.EventDTO;
-import com.example.events_app.dto.EventFilterDTO;
+import com.example.events_app.dto.event.EventDTO;
+import com.example.events_app.dto.event.EventFilterDTO;
 import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventType;
 import com.example.events_app.exceptions.NoSuchException;
 import com.example.events_app.filter.EventSpecification;
-import com.example.events_app.mapper.EventMapper;
-import com.example.events_app.mapper.EventTypeMapper;
+import com.example.events_app.mapper.event.EventMapper;
+import com.example.events_app.mapper.event.EventTypeMapper;
 import com.example.events_app.repository.EventRepository;
 import com.example.events_app.repository.EventTypeRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,14 +57,27 @@ public class EventService {
         eventDTO.setCreatedAt(now);
         eventDTO.setUpdatedAt(now);
 
+        EventType dbType = null;
+
         // 🔁 Если указан eventType.id — загружаем полный объект
         if (eventDTO.getEventType() != null && eventDTO.getEventType().getId() != null) {
-            EventType dbType = eventTypeRepository.findById(eventDTO.getEventType().getId())
+            dbType = eventTypeRepository.findById(eventDTO.getEventType().getId())
                     .orElseThrow(() -> new NoSuchException("EventType not found"));
-            eventDTO.setEventType(eventTypeMapper.toDto(dbType));
         }
 
-        Event savedEvent = eventRepository.save(eventMapper.toEntity(eventDTO));
+        // Создаём сущность вручную, чтобы точно указать eventType
+        Event eventToSave = eventMapper.toEntity(eventDTO);
+        if (dbType != null) {
+            eventToSave.setEventType(dbType); // Убедимся, что связь установлена
+        }
+
+        Event savedEvent = eventRepository.save(eventToSave);
+
+        // ✅ Увеличиваем счётчик только после успешного сохранения
+        if (dbType != null) {
+            eventTypeRepository.incrementEventsCountById(dbType.getId());
+        }
+
         return eventMapper.toDto(savedEvent);
     }
 
@@ -95,10 +108,17 @@ public class EventService {
     @Transactional
     public void deleteEvent(Integer eventId) {
         log.info("Delete event");
-        if (eventRepository.findById(eventId).isEmpty()) {
-            throw new NoSuchException("There is no event with ID = " + eventId + " in Database");
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NoSuchException("There is no event with ID = " + eventId + " in Database"));
+
+        // Удаляем событие
+        eventRepository.delete(event);
+
+        // Уменьшаем счётчик у типа события
+        EventType eventType = event.getEventType();
+        if (eventType != null) {
+            eventTypeRepository.decrementEventsCountById(eventType.getId());
         }
-        eventRepository.deleteById(eventId);
     }
 
     public void updateConductedStatus(Integer eventId, boolean conducted) {
