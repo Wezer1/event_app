@@ -42,7 +42,7 @@ public class EventParticipantController {
     @GetMapping("/event/{eventId}")
     @Operation(summary = "Получить участников события", description = "Возвращает список пользователей, записавшихся на событие")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventParticipantDTO.class)))
-    @PreAuthorize("hasAuthority('users:write')")
+    @PreAuthorize("hasAuthority('users:read')")
     public List<EventParticipantDTO> getByEvent(@PathVariable Integer eventId) {
         return eventParticipantService.getParticipantsByEventId(eventId);
     }

@@ -98,7 +98,7 @@ public class EventController {
         return ResponseEntity.ok(eventService.changeEvent(eventID, eventDTO));
     }
 
-    @PostMapping("/{id}/conducted")
+    @PostMapping("/{id}/conduct")
     @Operation(summary = "Обновить статус 'проведено'", description = "Обновляет поле 'conducted'")
     @ApiResponse(responseCode = "200", description = "OK")
     @PreAuthorize("hasAuthority('users:write')")
