@@ -1,5 +1,6 @@
 package com.example.events_app.dto.bonus;
 
+import com.example.events_app.dto.user.UserShortDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -12,20 +13,17 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "История начисления бонуса")
-public class UserBonusHistoryDTO {
+public class UserBonusHistoryRequestDTO {
     private Integer id;
 
-    @NotNull(message = "userId cannot be null")
+    @NotNull(message = "user cannot be null")
     private Integer userId;
 
-    @NotNull(message = "bonusTypeId cannot be null")
+    @NotNull(message = "bonusType cannot be null")
     private Integer bonusTypeId;
 
     private Integer amount;
-
     private String reason;
-
     private LocalDateTime createdAt;
-
     private boolean isActive;
 }
