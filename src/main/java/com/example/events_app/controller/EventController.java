@@ -1,7 +1,9 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.event.EventDTO;
+import com.example.events_app.dto.event.EventRequestDTO;
+import com.example.events_app.dto.event.EventResponseMediumDTO;
 import com.example.events_app.dto.event.EventFilterDTO;
+import com.example.events_app.dto.event.EventResponseShortDTO;
 import com.example.events_app.service.EventService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,17 +29,17 @@ public class EventController {
 
     @GetMapping("/")
     @Operation(summary = "Получить все события", description = "Возвращает список всех событий")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventDTO.class)))
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventResponseMediumDTO.class)))
     @PreAuthorize("hasAuthority('users:read')")
-    public ResponseEntity<List<EventDTO>> getEvents(){
+    public ResponseEntity<List<EventResponseMediumDTO>> getEvents(){
         return ResponseEntity.ok(eventService.getAllEvents());
     }
 
     @GetMapping("/{eventId}")
     @Operation(summary = "Получить событие по ID", description = "Возвращает событие по его ID")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventDTO.class)))
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventResponseMediumDTO.class)))
     @PreAuthorize("hasAuthority('users:read')")
-    public ResponseEntity<EventDTO> getEventById(@PathVariable Integer eventId){
+    public ResponseEntity<EventResponseMediumDTO> getEventById(@PathVariable Integer eventId){
         return ResponseEntity.ok(eventService.getEventById(eventId));
     }
 
@@ -60,15 +62,15 @@ public class EventController {
             description = "OK",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = EventDTO.class),
+                    schema = @Schema(implementation = EventResponseMediumDTO.class),
                     examples = @ExampleObject(
                             value = "{ 'content': [ { 'id': 1, 'title': 'AI Conference', 'description': 'Discussion about AI future', 'startTime': '2025-04-10T10:00:00', 'endTime': '2025-04-10T18:00:00', 'location': 'Moscow', 'eventType': { 'id': 1, 'name': 'Conference' }, 'userId': 1 } ], 'totalElements': 1, 'totalPages': 1, 'size': 10, 'number': 0 }"
                     )
             )
     )
     @PreAuthorize("hasAuthority('users:read')")
-    public ResponseEntity<Page<EventDTO>> searchEvents(EventFilterDTO filter) {
-        Page<EventDTO> eventPage = eventService.searchEvents(filter);
+    public ResponseEntity<Page<EventResponseMediumDTO>> searchEvents(EventFilterDTO filter) {
+        Page<EventResponseMediumDTO> eventPage = eventService.searchEvents(filter);
         return ResponseEntity.ok(eventPage);
     }
 
@@ -76,25 +78,25 @@ public class EventController {
     @Operation(summary = "Удалить событие", description = "Удаляет событие по ID")
     @ApiResponse(responseCode = "204", description = "No Content")
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<EventDTO> deleteEvent(@PathVariable Integer eventId){
+    public ResponseEntity<EventResponseMediumDTO> deleteEvent(@PathVariable Integer eventId){
         eventService.deleteEvent(eventId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/")
     @Operation(summary = "Создать событие", description = "Создаёт новое событие")
-    @ApiResponse(responseCode = "200", description = "Created", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventDTO.class)))
+    @ApiResponse(responseCode = "200", description = "Created", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventResponseMediumDTO.class)))
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<EventDTO> addEvent(@Valid @RequestBody EventDTO eventDTO){
+    public ResponseEntity<EventResponseShortDTO> addEvent(@Valid @RequestBody EventRequestDTO eventDTO) {
         return ResponseEntity.ok(eventService.saveEvent(eventDTO));
     }
 
     @PostMapping("/{eventID}")
     @Operation(summary = "Обновить событие", description = "Обновляет данные о событии по ID")
-    @ApiResponse(responseCode = "200", description = "Updated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventDTO.class)))
+    @ApiResponse(responseCode = "200", description = "Updated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventResponseMediumDTO.class)))
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<EventDTO> changeEvent(@PathVariable Integer eventID,
-                                                @Valid @RequestBody EventDTO eventDTO){
+    public ResponseEntity<EventResponseShortDTO> changeEvent(@PathVariable Integer eventID,
+                                                             @Valid @RequestBody EventRequestDTO eventDTO) {
         return ResponseEntity.ok(eventService.changeEvent(eventID, eventDTO));
     }
 

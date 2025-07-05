@@ -1,5 +1,6 @@
 package com.example.events_app.entity;
 
+import com.example.events_app.dto.user.UserMediumDTO;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.OnDelete;
@@ -46,6 +47,7 @@ public class Event {
     @JoinColumn(name = "event_type_id", nullable = true) // nullable = false при необходимости
     private EventType eventType;
 
-    @Column(name = "user_id", columnDefinition = "1")
-    private Integer userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

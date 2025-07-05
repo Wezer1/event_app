@@ -1,7 +1,6 @@
 package com.example.events_app.dto.bonus;
 
 import com.example.events_app.dto.user.UserMediumDTO;
-import com.example.events_app.dto.user.UserShortDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

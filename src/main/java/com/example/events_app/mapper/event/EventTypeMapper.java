@@ -5,7 +5,7 @@ import com.example.events_app.entity.EventType;
 import com.example.events_app.mapper.user.UserMapper;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, EventMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, EventResponseMediumMapper.class})
 public abstract class EventTypeMapper {
 
     public abstract EventType toEntity(EventTypeDTO dto);
