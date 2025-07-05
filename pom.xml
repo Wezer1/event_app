@@ -26,6 +26,7 @@
         <tag/>
         <url/>
     </scm>
+    <packaging>jar</packaging>
     <properties>
         <java.version>17</java.version>
     </properties>
@@ -102,6 +103,11 @@
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
         </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -112,6 +118,26 @@
 
     <build>
         <plugins>
+
+<!--            &lt;!&ndash; 1. Plugin: maven-resources-plugin — исключаем ненужные файлы &ndash;&gt;-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-resources-plugin</artifactId>-->
+<!--                <version>3.3.1</version>-->
+<!--                <configuration>-->
+<!--                    <resources>-->
+<!--                        <resource>-->
+<!--                            <directory>src/main/resources</directory>-->
+<!--                            <excludes>-->
+<!--                                <exclude>db.changelog/**</exclude>-->
+<!--                                <exclude>docker-compose.yml</exclude>-->
+<!--                            </excludes>-->
+<!--                        </resource>-->
+<!--                    </resources>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+
+            <!-- 2. Компилятор Java -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -142,10 +168,12 @@
                 </configuration>
             </plugin>
 
+            <!-- 3. Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
         </plugins>
     </build>
 

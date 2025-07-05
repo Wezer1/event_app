@@ -15,7 +15,11 @@ spring:
   liquibase:
     change-log: classpath:db.changelog/db.changelog-master.xml
     enabled: true
-
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/events_app
+#    username: postgres
+#    password: postgres
+#    driver-class-name: org.postgresql.Driver
 
 #logging:
 #  level:

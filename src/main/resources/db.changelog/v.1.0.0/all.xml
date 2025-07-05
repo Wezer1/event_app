@@ -1,0 +1,196 @@
+<changeSet id="create-table-events" author="uPagge">
+    <createTable tableName="events">
+        <column name="id" type="int" autoIncrement="true">
+            <constraints nullable="false" primaryKey="true"/>
+        </column>
+        <column name="title" type="VARCHAR(255)">
+            <constraints nullable="false"/>
+        </column>
+        <column name="description" type="TEXT"/>
+        <column name="start_time" type="TIMESTAMP WITHOUT TIME ZONE">
+            <constraints nullable="false"/>
+        </column>
+        <column name="end_time" type="TIMESTAMP WITHOUT TIME ZONE">
+            <constraints nullable="false"/>
+        </column>
+        <column name="location" type="VARCHAR(255)"/>
+        <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+            <constraints nullable="false"/>
+        </column>
+        <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE">
+            <constraints nullable="false"/>
+        </column>
+    </createTable>
+</changeSet>
+<changeSet id="add-column-event-conducted" author="uPagge">
+<addColumn tableName="events">
+    <column name="conducted" type="BOOLEAN">
+
+    </column>
+</addColumn>
+</changeSet>
+<changeSet id="create-table-users" author="uPagge">
+<createTable tableName="users">
+    <column name="id" type="int" autoIncrement="true">
+        <constraints nullable="false" primaryKey="true"/>
+    </column>
+
+    <!-- Имя -->
+    <column name="first_name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+    </column>
+
+    <!-- Фамилия -->
+    <column name="last_name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+    </column>
+
+    <!-- Отчество (может быть пустым) -->
+    <column name="patronymic" type="VARCHAR(100)">
+        <constraints nullable="true"/>
+    </column>
+
+    <!-- Логин -->
+    <column name="login" type="VARCHAR(100)">
+        <constraints nullable="false" unique="true"/>
+    </column>
+
+    <!-- Пароль -->
+    <column name="password" type="VARCHAR(255)">
+        <constraints nullable="false"/>
+    </column>
+
+    <!-- Роль -->
+    <column name="role" type="VARCHAR(20)">
+        <constraints nullable="false"/>
+    </column>
+</createTable>
+</changeSet>
+<changeSet id="create-table-event-participants" author="uPagge">
+<createTable tableName="event_participants">
+    <column name="user_id" type="INT">
+        <constraints nullable="false" foreignKeyName="fk_event_participants_user" references="users(id)"/>
+    </column>
+    <column name="event_id" type="INT">
+        <constraints nullable="false" foreignKeyName="fk_event_participants_event" references="events(id)"/>
+    </column>
+    <column name="status" type="VARCHAR(20)">
+        <constraints nullable="false"/>
+    </column>
+    <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+        <constraints nullable="false"/>
+    </column>
+</createTable>
+
+<!-- Составной первичный ключ -->
+<addPrimaryKey columnNames="user_id,event_id" tableName="event_participants"
+               constraintName="pk_event_participants"/>
+</changeSet>
+
+<changeSet id="add-column-event-type-id-to-events" author="uPagge">
+<addColumn tableName="events">
+    <column name="event_type_id" type="int">
+        <constraints nullable="true"/> <!-- или false, если сразу заполняете данные -->
+    </column>
+</addColumn>
+</changeSet>
+
+        <!-- Добавление внешнего ключа из events к event_types -->
+<changeSet id="add-foreign-key-to-event-types" author="uPagge">
+<addForeignKeyConstraint baseColumnNames="event_type_id"
+                         baseTableName="events"
+                         constraintName="fk_event_event_type"
+                         referencedColumnNames="id"
+                         referencedTableName="event_types"/>
+</changeSet>
+
+<changeSet id="create-table-event-types" author="uPagge">
+<createTable tableName="event_types">
+    <column name="id" type="int" autoIncrement="true">
+        <constraints nullable="false" primaryKey="true"/>
+    </column>
+    <column name="name" type="VARCHAR(255)">
+        <constraints nullable="false" unique="true"/>
+    </column>
+    <column name="description" type="TEXT"/>
+</createTable>
+</changeSet>
+
+<changeSet id="add-indexes-user-bonus-history" author="uPagge">
+<createIndex tableName="user_bonus_history" indexName="idx_user_bonus_user">
+    <column name="user_id"/>
+</createIndex>
+<createIndex tableName="user_bonus_history" indexName="idx_user_bonus_type">
+    <column name="bonus_type_id"/>
+</createIndex>
+</changeSet>
+
+<changeSet id="create-table-bonus-types" author="uPagge">
+<createTable tableName="bonus_types">
+    <column name="id" type="int" autoIncrement="true">
+        <constraints nullable="false" primaryKey="true"/>
+    </column>
+    <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false" unique="true"/>
+    </column>
+    <column name="description" type="TEXT"/>
+</createTable>
+</changeSet>
+
+<changeSet id="create-table-user-bonus-history" author="uPagge">
+<createTable tableName="user_bonus_history">
+    <column name="id" type="int" autoIncrement="true">
+        <constraints nullable="false" primaryKey="true"/>
+    </column>
+    <column name="user_id" type="int">
+        <constraints nullable="false" foreignKeyName="fk_user_bonus_user_hist" references="users(id)"/>
+    </column>
+    <column name="bonus_type_id" type="int">
+        <constraints nullable="false" foreignKeyName="fk_user_bonus_type_hist" references="bonus_types(id)"/>
+    </column>
+    <column name="amount" type="int">
+        <constraints nullable="false"/>
+    </column>
+    <column name="reason" type="TEXT"/>
+    <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+        <constraints nullable="false"/>
+    </column>
+    <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+        <constraints nullable="false"/>
+    </column>
+</createTable>
+</changeSet>
+
+<changeSet id="add-foreign-key-user-to-events" author="uPagge">
+<!-- 1. Добавляем новую колонку user_id в таблицу events -->
+<addColumn tableName="events">
+    <column name="user_id" type="int">
+        <constraints nullable="false"/>
+    </column>
+</addColumn>
+
+<!-- 2. Добавляем внешний ключ: events.user_id -> users.id -->
+<addForeignKeyConstraint baseColumnNames="user_id"
+                         baseTableName="events"
+                         constraintName="fk_events_users"
+                         referencedColumnNames="id"
+                         referencedTableName="users"/>
+</changeSet>
+<changeSet id="add-registered-events-count-and-total-bonus-points" author="uPagge">
+<addColumn tableName="users">
+    <column name="registeredEventsCount" type="int">
+
+    </column>
+    <column name="totalBonusPoints" type="int">
+
+    </column>
+</addColumn>
+</changeSet>
+
+<changeSet id="add-column-events-count" author="uPagge">
+<addColumn tableName="event_types">
+    <column name="events_count" type="INT" defaultValue="0">
+        <constraints nullable="false"/>
+    </column>
+</addColumn>
+</changeSet>

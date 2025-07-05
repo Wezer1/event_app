@@ -20,3 +20,33 @@ public class DbConfig {
     }
 
 }
+
+//@Configuration
+//public class DbConfig {
+//
+//    @Bean
+//    public DataSource dataSource() {
+//        DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
+//        dataSourceBuilder.url("jdbc:postgresql://localhost:5432/events_app");
+//        dataSourceBuilder.username("postgres");
+//        dataSourceBuilder.password("123456");
+//        dataSourceBuilder.driverClassName("org.postgresql.Driver");
+//        return dataSourceBuilder.build();
+//    }
+//
+//}
+
+//@Configuration
+//public class DbConfig {
+//
+//    @Bean
+//    public DataSource dataSource() {
+//        DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
+//        dataSourceBuilder.url("jdbc:postgresql://localhost:5432/events_app");
+//        dataSourceBuilder.username("postgres");
+//        dataSourceBuilder.password("postgres");
+//        dataSourceBuilder.driverClassName("org.postgresql.Driver");
+//        return dataSourceBuilder.build();
+//    }
+//
+//}
