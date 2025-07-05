@@ -1,6 +1,6 @@
 package com.example.events_app.mapper.event;
 
-import com.example.events_app.dto.event.EventDTO;
+import com.example.events_app.dto.event.EventResponseMediumDTO;
 import com.example.events_app.dto.event.EventShortDTO;
 import com.example.events_app.entity.Event;
 import org.mapstruct.Mapper;
@@ -20,5 +20,5 @@ public interface EventToShortMapper {
             @Mapping(source = "id", target = "id"),
             @Mapping(source = "title", target = "title") // title -> name
     })
-    EventShortDTO eventDtoToEventShortDTO(EventDTO eventDTO);
+    EventShortDTO eventDtoToEventShortDTO(EventResponseMediumDTO eventDTO);
 }

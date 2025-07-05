@@ -1,5 +1,7 @@
 package com.example.events_app.dto.event;
 
+import com.example.events_app.dto.user.UserMediumDTO;
+import com.example.events_app.dto.user.UserShortDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "DTO для создания и обновления события")
-public class EventDTO {
+public class EventResponseShortDTO {
     private Integer id;
 
     private String title;
@@ -32,5 +34,5 @@ public class EventDTO {
 
     private EventTypeDTO eventType;
 
-    private Integer userId;
+    private UserShortDTO user;
 }
