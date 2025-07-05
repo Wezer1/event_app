@@ -10,12 +10,4 @@ import java.util.Optional;
 
 public interface EventTypeRepository extends JpaRepository<EventType, Integer> {
     boolean existsByName(String name);
-
-    @Modifying
-    @Query("UPDATE EventType et SET et.eventsCount = et.eventsCount + 1 WHERE et.id = :id")
-    void incrementEventsCountById(@Param("id") Integer id);
-
-    @Modifying
-    @Query("UPDATE EventType et SET et.eventsCount = et.eventsCount - 1 WHERE et.id = :id")
-    void decrementEventsCountById(@Param("id") Integer id);
 }

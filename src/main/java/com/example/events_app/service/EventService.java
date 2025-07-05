@@ -84,10 +84,6 @@ public class EventService {
 
         Event savedEvent = eventRepository.save(eventToSave);
 
-        if (dbType != null) {
-            eventTypeRepository.incrementEventsCountById(dbType.getId());
-        }
-
         return eventResponseShortMapper.toDto(savedEvent);
     }
 
@@ -123,12 +119,6 @@ public class EventService {
 
         // Удаляем событие
         eventRepository.delete(event);
-
-        // Уменьшаем счётчик у типа события
-        EventType eventType = event.getEventType();
-        if (eventType != null) {
-            eventTypeRepository.decrementEventsCountById(eventType.getId());
-        }
     }
 
     public void updateConductedStatus(Integer eventId, boolean conducted) {

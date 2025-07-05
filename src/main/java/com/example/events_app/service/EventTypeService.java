@@ -4,8 +4,9 @@ import com.example.events_app.dto.event.EventTypeDTO;
 import com.example.events_app.entity.EventType;
 import com.example.events_app.exceptions.NoSuchException;
 import com.example.events_app.mapper.event.EventTypeMapper;
+import com.example.events_app.repository.EventRepository;
 import com.example.events_app.repository.EventTypeRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,40 +22,50 @@ public class EventTypeService {
 
     private final EventTypeRepository eventTypeRepository;
     private final EventTypeMapper eventTypeMapper;
+    private final EventRepository eventRepository;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<EventTypeDTO> getAllEventTypes() {
         log.info("Get all event types");
         if (eventTypeRepository.findAll().isEmpty()) {
             throw new NoSuchException("No event types found");
         }
+
         return eventTypeRepository.findAll().stream()
-                .map(eventTypeMapper::toDto)
+                .map(eventType -> {
+                    EventTypeDTO dto = eventTypeMapper.toDto(eventType);
+                    dto.setEventsCount(eventRepository.countByEventTypeId(eventType.getId()));
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public EventTypeDTO getEventTypeById(Integer eventTypeId) {
         log.info("Get event type by ID: {}", eventTypeId);
 
         EventType eventType = eventTypeRepository.findById(eventTypeId)
                 .orElseThrow(() -> new NoSuchException("There is no event type with ID = " + eventTypeId + " in DB"));
 
-        return eventTypeMapper.toDto(eventType);
+        EventTypeDTO dto = eventTypeMapper.toDto(eventType);
+        dto.setEventsCount(eventRepository.countByEventTypeId(eventTypeId));
+
+        return dto;
     }
 
     @Transactional
     public EventTypeDTO saveEventType(EventTypeDTO eventTypeDTO) {
         log.info("Saving event type: {}", eventTypeDTO);
 
-        // Проверяем, есть ли уже EventType с таким name
         if (eventTypeRepository.existsByName(eventTypeDTO.getName())) {
             throw new DataIntegrityViolationException("Event type with name '" + eventTypeDTO.getName() + "' already exists.");
         }
 
         EventType savedEventType = eventTypeRepository.save(eventTypeMapper.toEntity(eventTypeDTO));
+        EventTypeDTO dto = eventTypeMapper.toDto(savedEventType);
+        dto.setEventsCount(0); // по умолчанию 0
 
-        return eventTypeMapper.toDto(savedEventType);
+        return dto;
     }
 
     @Transactional
