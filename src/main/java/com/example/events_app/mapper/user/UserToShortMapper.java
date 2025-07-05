@@ -12,15 +12,14 @@ public interface UserToShortMapper {
 
     @Mappings({
             @Mapping(source = "id", target = "id"),
-            @Mapping(source = "firstName", target = "firstName"),
-            @Mapping(source = "lastName", target = "lastName")
+            @Mapping(source = "fullName", target = "fullName"),
+
     })
     UserShortDTO userToUserShortDTO(User user);
 
     @Mappings({
             @Mapping(source = "id", target = "id"),
-            @Mapping(source = "firstName", target = "firstName"),
-            @Mapping(source = "lastName", target = "lastName")
+            @Mapping(source = "fullName", target = "fullName"),
     })
     UserShortDTO userDtoToUserShortDTO(UserDTO userDTO);
 }

@@ -15,14 +15,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "first_name", nullable = false)
-    private String firstName;
-
-    @Column(name = "last_name", nullable = false)
-    private String lastName;
-
-    @Column(name = "patronymic")
-    private String patronymic;
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
 
     @Column(name = "login", nullable = false, unique = true)
     private String login;

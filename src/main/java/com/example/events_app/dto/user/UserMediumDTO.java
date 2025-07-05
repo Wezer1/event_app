@@ -13,9 +13,7 @@ import lombok.NoArgsConstructor;
 public class UserMediumDTO {
 
     private Integer id;
-    private String firstName;
-    private String lastName;
-    private String patronymic;
+    private String fullName;
     private Integer registeredEventsCount ;
     private Integer totalBonusPoints;
 }

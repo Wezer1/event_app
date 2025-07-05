@@ -194,8 +194,8 @@ public class EventParticipantService {
         // --- НАЧАЛО ВРЕМЕННОГО РЕШЕНИЯ ---
         UserShortDTO userShortDTO = new UserShortDTO();
         userShortDTO.setId(user.getId());
-        userShortDTO.setFirstName(user.getFirstName()); // ← берём реальные данные из БД
-        userShortDTO.setLastName(user.getLastName());
+        userShortDTO.setFullName(user.getFullName()); // ← берём реальные данные из БД
+
 
         EventShortDTO eventShortDTO = new EventShortDTO();
         eventShortDTO.setId(event.getId());

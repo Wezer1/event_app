@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Краткая информация о пользователе")
 public class UserShortDTO {
     private Integer id;
-    private String firstName;
-    private String lastName;
+    private String fullName;
+
 }

@@ -15,11 +15,7 @@ public class UserDTO {
 
     private Integer id;
 
-    private String firstName;
-
-    private String lastName;
-
-    private String patronymic;
+    private String fullName;
 
     private String login;
 

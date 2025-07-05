@@ -11,12 +11,7 @@ public class UserRegistrationResponseDto {
     private Integer id;
 
     @NotBlank
-    private String firstName;
-
-    @NotBlank
-    private String lastName;
-
-    private String patronymic;
+    private String fullName;
 
     @NotBlank
     private String login;
