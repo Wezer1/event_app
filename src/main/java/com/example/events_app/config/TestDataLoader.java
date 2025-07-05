@@ -60,23 +60,18 @@ public class TestDataLoader implements CommandLineRunner {
 
             types.get(0).setName("Конференция");
             types.get(0).setDescription("Мероприятие для обмена знаниями");
-            types.get(0).setEventsCount(0);
 
             types.get(1).setName("Семинар");
             types.get(1).setDescription("Обучающее мероприятие");
-            types.get(1).setEventsCount(0);
 
             types.get(2).setName("Воркшоп");
             types.get(2).setDescription("Практическое занятие");
-            types.get(2).setEventsCount(0);
 
             types.get(3).setName("Фестиваль");
             types.get(3).setDescription("Развлекательное массовое мероприятие");
-            types.get(3).setEventsCount(0);
 
             types.get(4).setName("Митап");
             types.get(4).setDescription("Неформальная встреча по интересам");
-            types.get(4).setEventsCount(0);
 
             eventTypeRepository.saveAll(types);
         }

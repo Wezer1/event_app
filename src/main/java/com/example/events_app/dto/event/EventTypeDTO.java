@@ -21,5 +21,4 @@ public class EventTypeDTO {
     private String description;
 
     private Integer eventsCount;
-
 }
