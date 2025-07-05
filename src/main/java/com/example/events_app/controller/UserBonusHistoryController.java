@@ -1,6 +1,8 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.bonus.UserBonusHistoryDTO;
+import com.example.events_app.dto.bonus.UserBonusHistoryRequestDTO;
+import com.example.events_app.dto.bonus.UserBonusHistoryResponseMediumDTO;
+import com.example.events_app.dto.bonus.UserBonusHistoryResponseShortDTO;
 import com.example.events_app.service.UserBonusHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,37 +25,37 @@ public class UserBonusHistoryController {
 
     private final UserBonusHistoryService userBonusHistoryService;
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/{id}")
     @Operation(summary = "Получить историю бонусов пользователя", description = "Возвращает список бонусов для конкретного пользователя")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserBonusHistoryDTO.class)))
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserBonusHistoryResponseShortDTO.class)))
     @PreAuthorize("hasAuthority('users:read')")
-    public ResponseEntity<List<UserBonusHistoryDTO>> getAllByUserId(@PathVariable Integer userId) {
-        return ResponseEntity.ok(userBonusHistoryService.getAllByUserId(userId));
+    public ResponseEntity<List<UserBonusHistoryResponseShortDTO>> getAllByUserId(@PathVariable Integer id) {
+        return ResponseEntity.ok(userBonusHistoryService.getAllByUserId(id));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить запись истории бонуса по ID", description = "Возвращает конкретную запись начисления бонуса")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserBonusHistoryDTO.class)))
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserBonusHistoryResponseShortDTO.class)))
     @PreAuthorize("hasAuthority('users:read')")
-    public ResponseEntity<UserBonusHistoryDTO> getById(@PathVariable Integer id) {
+    public ResponseEntity<UserBonusHistoryResponseMediumDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(userBonusHistoryService.getById(id));
     }
 
     @PostMapping("/")
     @Operation(summary = "Создать запись истории бонуса", description = "Создаёт новую запись начисления бонуса пользователю")
-    @ApiResponse(responseCode = "201", description = "Created", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserBonusHistoryDTO.class)))
+    @ApiResponse(responseCode = "201", description = "Created", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserBonusHistoryResponseShortDTO.class)))
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<UserBonusHistoryDTO> create(@Valid @RequestBody UserBonusHistoryDTO dto) {
+    public ResponseEntity<UserBonusHistoryResponseShortDTO> create(@Valid @RequestBody UserBonusHistoryRequestDTO dto) {
         return ResponseEntity.ok(userBonusHistoryService.create(dto));
     }
 
     @PostMapping("/{id}")
     @Operation(summary = "Обновить запись истории бонуса", description = "Обновляет существующую запись начисления бонуса")
-    @ApiResponse(responseCode = "200", description = "Updated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserBonusHistoryDTO.class)))
+    @ApiResponse(responseCode = "200", description = "Updated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserBonusHistoryResponseShortDTO.class)))
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<UserBonusHistoryDTO> update(
+    public ResponseEntity<UserBonusHistoryResponseShortDTO> update(
             @PathVariable Integer id,
-            @Valid @RequestBody UserBonusHistoryDTO dto) {
+            @Valid @RequestBody UserBonusHistoryRequestDTO dto) {
         return ResponseEntity.ok(userBonusHistoryService.update(id, dto));
     }
 

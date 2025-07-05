@@ -1,10 +1,16 @@
 package com.example.events_app.service;
 
-import com.example.events_app.dto.bonus.UserBonusHistoryDTO;
+import com.example.events_app.dto.bonus.UserBonusHistoryRequestDTO;
+import com.example.events_app.dto.bonus.UserBonusHistoryResponseMediumDTO;
+import com.example.events_app.dto.bonus.UserBonusHistoryResponseShortDTO;
+import com.example.events_app.entity.BonusType;
 import com.example.events_app.entity.User;
 import com.example.events_app.entity.UserBonusHistory;
 import com.example.events_app.exceptions.NoSuchException;
-import com.example.events_app.mapper.bonus.UserBonusHistoryMapper;
+import com.example.events_app.mapper.bonus.UserBonusHistoryRequestMapper;
+import com.example.events_app.mapper.bonus.UserBonusHistoryResponseMediumMapper;
+import com.example.events_app.mapper.bonus.UserBonusHistoryResponseShortMapper;
+import com.example.events_app.repository.BonusTypeRepository;
 import com.example.events_app.repository.UserBonusHistoryRepository;
 import com.example.events_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,57 +29,58 @@ import java.util.stream.Collectors;
 public class UserBonusHistoryService {
 
     private final UserBonusHistoryRepository repository;
-    private final UserBonusHistoryMapper mapper;
+    private final BonusTypeRepository bonusTypeRepository;
+    private final UserBonusHistoryResponseShortMapper userBonusHistoryResponseShortMapper;
+    private final UserBonusHistoryResponseMediumMapper userBonusHistoryResponseMediumMapper;
+    private final UserBonusHistoryRequestMapper userBonusHistoryRequestMapper;
     private final UserRepository userRepository;
 
 
     @Transactional(readOnly = true)
-    public List<UserBonusHistoryDTO> getAllByUserId(Integer userId) {
+    public List<UserBonusHistoryResponseShortDTO> getAllByUserId(Integer userId) {
         log.info("Getting bonus history for user ID: {}", userId);
         List<UserBonusHistory> list = repository.findByUserId(userId);
         if (list.isEmpty()) {
             throw new NoSuchException("No bonus history found for user ID: " + userId);
         }
         return list.stream()
-                .map(mapper::toDto)
+                .map(userBonusHistoryResponseShortMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public UserBonusHistoryDTO getById(Integer id) {
+    public UserBonusHistoryResponseMediumDTO getById(Integer id) {
         log.info("Getting bonus history record by ID: {}", id);
         UserBonusHistory entity = repository.findById(id)
                 .orElseThrow(() -> new NoSuchException("Bonus history not found with ID: " + id));
-        return mapper.toDto(entity);
+        return userBonusHistoryResponseMediumMapper.toDto(entity);
     }
 
     @Transactional
-    public UserBonusHistoryDTO create(UserBonusHistoryDTO dto) {
+    public UserBonusHistoryResponseShortDTO create(UserBonusHistoryRequestDTO dto) {
         log.info("Creating user bonus history: {}", dto);
 
-        LocalDateTime now = LocalDateTime.now();
-        dto.setCreatedAt(now);
-
         Integer userId = dto.getUserId();
-        if (userId == null) {
-            throw new NoSuchException("userId is null");
-        }
+        Integer bonusTypeId = dto.getBonusTypeId();
 
-        // Проверяем существование пользователя
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchException("There is no user with ID = " + userId));
+                .orElseThrow(() -> new NoSuchException("User not found with ID: " + userId));
 
-        // Сохраняем историю бонуса
-        UserBonusHistory saved = repository.save(mapper.toEntity(dto));
+        BonusType bonusType = bonusTypeRepository.findById(bonusTypeId)
+                .orElseThrow(() -> new NoSuchException("Bonus type not found"));
 
-        // Обновляем общий баланс
-        int bonusValue = Optional.ofNullable(dto.getAmount()).orElse(0);
-        user.setTotalBonusPoints(user.getTotalBonusPoints()+bonusValue);
-        return mapper.toDto(saved);
+        UserBonusHistory entity = userBonusHistoryRequestMapper.toEntity(dto);
+        entity.setUser(user);
+        entity.setBonusType(bonusType);
+        entity.setCreatedAt(LocalDateTime.now());
+
+        UserBonusHistory saved = repository.save(entity);
+
+        return userBonusHistoryResponseShortMapper.toDto(saved);
     }
 
     @Transactional
-    public UserBonusHistoryDTO update(Integer id, UserBonusHistoryDTO dto) {
+    public UserBonusHistoryResponseShortDTO update(Integer id, UserBonusHistoryRequestDTO dto) {
         log.info("Updating bonus history with ID {}: {}", id, dto);
 
         UserBonusHistory existing = repository.findById(id)
@@ -81,11 +88,11 @@ public class UserBonusHistoryService {
 
         LocalDateTime now = LocalDateTime.now();
         dto.setCreatedAt(now);
-        UserBonusHistory updated = mapper.toEntity(dto);
+        UserBonusHistory updated = userBonusHistoryRequestMapper.toEntity(dto);
         updated.setId(existing.getId()); // сохраняем ID
 
         UserBonusHistory saved = repository.save(updated);
-        return mapper.toDto(saved);
+        return userBonusHistoryResponseShortMapper.toDto(saved);
     }
 
     @Transactional
