@@ -14,16 +14,10 @@ public class UserSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (filter.getFirstName() != null) {
+            if (filter.getFullName() != null) {
                 predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("firstName")),
-                        "%" + filter.getFirstName().toLowerCase() + "%"));
-            }
-
-            if (filter.getLastName() != null) {
-                predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("lastName")),
-                        "%" + filter.getLastName().toLowerCase() + "%"));
+                        criteriaBuilder.lower(root.get("fullName")),
+                        "%" + filter.getFullName().toLowerCase() + "%"));
             }
 
             if (filter.getLogin() != null) {

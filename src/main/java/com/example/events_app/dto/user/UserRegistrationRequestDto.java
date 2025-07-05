@@ -11,12 +11,7 @@ import lombok.Data;
 public class UserRegistrationRequestDto {
 
     @NotBlank
-    private String firstName;
-
-    @NotBlank
-    private String lastName;
-
-    private String patronymic;
+    private String fullName;
 
     @NotBlank
     private String login;

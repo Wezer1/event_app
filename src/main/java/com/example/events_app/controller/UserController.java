@@ -84,9 +84,7 @@ public class UserController {
             summary = "Поиск пользователей по фильтру",
             description = "Можно фильтровать по имени, фамилии, логину, количеству событий и бонусных баллов. Поддерживает пагинацию.",
             parameters = {
-                    @Parameter(name = "firstName", description = "Имя пользователя (частичное совпадение)", example = "Иван"),
-                    @Parameter(name = "lastName", description = "Фамилия пользователя (частичное совпадение)", example = "Иванов"),
-                    @Parameter(name = "login", description = "Логин пользователя (частичное совпадение)", example = "ivan_123"),
+                    @Parameter(name = "fullName", description = "Имя пользователя (частичное совпадение)", example = "Иван"),
                     @Parameter(name = "registeredEventsCount", description = "Количество зарегистрированных событий", example = "5"),
                     @Parameter(name = "totalBonusPoints", description = "Общее количество бонусных баллов", example = "100"),
                     @Parameter(name = "role", description = "Роль пользователя: USER или ADMIN", example = "USER"),

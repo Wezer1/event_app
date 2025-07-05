@@ -82,9 +82,7 @@ public class TestDataLoader implements CommandLineRunner {
 
             for (int i = 1; i <= 10; i++) {
                 User user = new User();
-                user.setFirstName("Имя" + i);
-                user.setLastName("Фамилия" + i);
-                user.setPatronymic("Отчество" + i);
+                user.setFullName("Имя" + i);
                 user.setLogin("user" + i);
                 user.setPassword("password"); // можно хэшировать позже
                 user.setRole(Role.USER);

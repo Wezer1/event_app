@@ -10,11 +10,8 @@ import lombok.Data;
 @Data
 public class UserFilterDTO {
 
-    @Schema(description = "Имя пользователя", example = "Ivan")
-    private String firstName;
-
-    @Schema(description = "Фамилия пользователя", example = "Ivanov")
-    private String lastName;
+    @Schema(description = "ФИО пользователя", example = "Ivanov Ivan")
+    private String fullName;
 
     @Schema(description = "Логин пользователя", example = "ivan_123")
     private String login;

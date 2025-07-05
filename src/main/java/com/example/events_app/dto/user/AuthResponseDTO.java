@@ -7,17 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class AuthResponseDTO {
     private Integer id;
 
     @NotBlank
-    private String firstName;
-
-    @NotBlank
-    private String lastName;
-
-    private String patronymic;
+    private String fullName;
 
     @NotBlank
     private String login;
@@ -26,10 +20,9 @@ public class AuthResponseDTO {
 
     private String token;
 
-    public AuthResponseDTO(Integer id, String firstName, String lastName, String login, Role role, String token) {
+    public AuthResponseDTO(Integer id, String fullName, String login, Role role, String token) {
         this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = fullName;
         this.login = login;
         this.role = role;
         this.token = token;

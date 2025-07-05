@@ -66,9 +66,7 @@ public class UserService {
             throw new NoSuchException("There is no user with ID = "+ userId + " in Database");
         }else{
             User existingUser = optionalUser.get();
-            existingUser.setFirstName(userRegistrationRequestDto.getFirstName());
-            existingUser.setLastName(userRegistrationRequestDto.getLastName());
-            existingUser.setPatronymic(userRegistrationRequestDto.getPatronymic());
+            existingUser.setFullName(userRegistrationRequestDto.getFullName());
             existingUser.setLogin(userRegistrationRequestDto.getLogin());
             existingUser.setPassword(userRegistrationRequestDto.getPassword());
             existingUser.setRole(userRegistrationRequestDto.getRole());

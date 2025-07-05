@@ -21,12 +21,20 @@ public class UserDataLoader implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         // Создаем первого пользователя (USER)
-        UserRegistrationRequestDto user1 = new UserRegistrationRequestDto
-                ("user","user","user","user","user",Role.USER);
+        UserRegistrationRequestDto user1 = new UserRegistrationRequestDto(
+                "User Userov",   // full_name
+                "user",          // login
+                "user",          // password
+                Role.USER        // role
+        );
 
         // Создаем второго пользователя (ADMIN)
-        UserRegistrationRequestDto user2 = new UserRegistrationRequestDto
-                ("admin","admin","admin","admin","admin",Role.ADMIN);
+        UserRegistrationRequestDto user2 = new UserRegistrationRequestDto(
+                "Admin Adminov",
+                "admin",
+                "admin",
+                Role.ADMIN
+        );
 
         // Сохраняем, если ещё не существует
         if (userRepository.findByLogin(user1.getLogin()).isEmpty()) {
