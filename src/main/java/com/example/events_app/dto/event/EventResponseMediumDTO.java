@@ -1,6 +1,7 @@
 package com.example.events_app.dto.event;
 
 import com.example.events_app.dto.user.UserMediumDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,5 +34,6 @@ public class EventResponseMediumDTO {
 
     private EventTypeDTO eventType;
 
+    @JsonProperty("owner")
     private UserMediumDTO user;
 }

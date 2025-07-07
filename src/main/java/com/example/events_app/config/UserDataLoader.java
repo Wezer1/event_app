@@ -25,7 +25,9 @@ public class UserDataLoader implements ApplicationRunner {
                 "User Userov",   // full_name
                 "user",          // login
                 "user",          // password
-                Role.USER        // role
+                Role.USER,        // role
+                "user",
+                "user"
         );
 
         // Создаем второго пользователя (ADMIN)
@@ -33,7 +35,9 @@ public class UserDataLoader implements ApplicationRunner {
                 "Admin Adminov",
                 "admin",
                 "admin",
-                Role.ADMIN
+                Role.ADMIN,
+                "admin",
+                "admin"
         );
 
         // Сохраняем, если ещё не существует

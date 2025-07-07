@@ -33,4 +33,10 @@ public class User {
 
     @Column(name = "total_bonus_points")
     private Integer totalBonusPoints = 0;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Column(name = "email")
+    private String email;
 }

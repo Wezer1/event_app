@@ -122,7 +122,9 @@ public class TestDataLoader implements CommandLineRunner {
         if (eventRepository.count() == 0) {
             List<Event> events = new ArrayList<>();
             List<EventType> allTypes = eventTypeRepository.findAll();
+            List<User> allUsers = userRepository.findAll();
 
+// Создаём события
             for (int i = 1; i <= 2000; i++) {
                 EventType type = allTypes.get((int) (Math.random() * allTypes.size()));
                 LocalDateTime start = now.plusDays((long) (Math.random() * 60));
@@ -138,6 +140,9 @@ public class TestDataLoader implements CommandLineRunner {
                 event.setUpdatedAt(now);
                 event.setConducted(false);
                 event.setEventType(type);
+
+                // 💥 Вот это важно! Устанавливаем пользователя
+                event.setUser(allUsers.get(i % allUsers.size())); // например, случайный пользователь
 
                 events.add(event);
             }
