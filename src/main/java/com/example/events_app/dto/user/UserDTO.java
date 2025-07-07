@@ -24,4 +24,8 @@ public class UserDTO {
     private Integer registeredEventsCount;
 
     private Integer totalBonusPoints;
+
+    private String phoneNumber;
+
+    private String email;
 }

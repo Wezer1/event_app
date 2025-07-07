@@ -70,6 +70,8 @@ public class UserService {
             existingUser.setLogin(userRegistrationRequestDto.getLogin());
             existingUser.setPassword(userRegistrationRequestDto.getPassword());
             existingUser.setRole(userRegistrationRequestDto.getRole());
+            existingUser.setEmail(userRegistrationRequestDto.getEmail());
+            existingUser.setPhoneNumber(userRegistrationRequestDto.getPhoneNumber());
 
 
             return userRegisterResponseMapper.toRegistrationResponseDto(userRepository.save(existingUser));
