@@ -1,18 +1,12 @@
 package com.example.events_app.service;
 
-import com.example.events_app.dto.event.EventRequestDTO;
-import com.example.events_app.dto.event.EventResponseMediumDTO;
-import com.example.events_app.dto.event.EventFilterDTO;
-import com.example.events_app.dto.event.EventResponseShortDTO;
+import com.example.events_app.dto.event.*;
 import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventType;
 import com.example.events_app.entity.User;
 import com.example.events_app.exceptions.NoSuchException;
 import com.example.events_app.filter.EventSpecification;
-import com.example.events_app.mapper.event.EventRequestMapper;
-import com.example.events_app.mapper.event.EventResponseMediumMapper;
-import com.example.events_app.mapper.event.EventResponseShortMapper;
-import com.example.events_app.mapper.event.EventTypeMapper;
+import com.example.events_app.mapper.event.*;
 import com.example.events_app.repository.EventRepository;
 import com.example.events_app.repository.EventTypeRepository;
 import com.example.events_app.repository.UserRepository;
@@ -23,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,12 +29,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EventService {
     private final EventRepository eventRepository;
-    private final EventResponseMediumMapper eventResponseMediumMapper;
+    private final UserRepository userRepository;
     private final EventTypeRepository eventTypeRepository;
+
+    private final FileStorageService fileStorageService;
+
+    private final EventResponseMediumMapper eventResponseMediumMapper;
     private final EventResponseShortMapper eventResponseShortMapper;
     private final EventRequestMapper eventRequestMapper;
-    private final UserRepository userRepository;
-    private final EventTypeMapper eventTypeMapper;
+    private final EventResponseMapper eventResponseMapper;
 
     @Transactional
     public List<EventResponseMediumDTO> getAllEvents() {
@@ -59,7 +57,7 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponseShortDTO saveEvent(EventRequestDTO eventDTO) {
+    public EventResponseDTO saveEvent(EventRequestDTO eventDTO) {
         log.info("Saving event: {}", eventDTO);
 
         LocalDateTime now = LocalDateTime.now();
@@ -84,8 +82,10 @@ public class EventService {
 
         Event savedEvent = eventRepository.save(eventToSave);
 
-        return eventResponseShortMapper.toDto(savedEvent);
+        return eventResponseMapper.toDto(savedEvent);
     }
+
+
 
     @Transactional
     public EventResponseShortDTO changeEvent(Integer eventId, EventRequestDTO eventDTO) {

@@ -1,14 +1,14 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.event.EventRequestDTO;
-import com.example.events_app.dto.event.EventResponseMediumDTO;
-import com.example.events_app.dto.event.EventFilterDTO;
-import com.example.events_app.dto.event.EventResponseShortDTO;
+import com.example.events_app.dto.event.*;
 import com.example.events_app.service.EventService;
+import com.example.events_app.service.FileStorageService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +18,7 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/events")
@@ -26,7 +27,7 @@ import io.swagger.v3.oas.annotations.responses.*;
 public class EventController {
 
     private final EventService eventService;
-
+    private final FileStorageService fileStorageService;
     @GetMapping("/")
     @Operation(summary = "Получить все события", description = "Возвращает список всех событий")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventResponseMediumDTO.class)))
@@ -83,12 +84,39 @@ public class EventController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/")
-    @Operation(summary = "Создать событие", description = "Создаёт новое событие")
-    @ApiResponse(responseCode = "200", description = "Created", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventResponseMediumDTO.class)))
+    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Загрузить превью события", description = "Принимает файл изображения и сохраняет его на сервере")
+    @ApiResponse(responseCode = "200", description = "Файл успешно загружен", content = {
+            @Content(mediaType = "text/plain", schema = @Schema(type = "string", example = "/uploads/previews/event_123456789.png"))
+    })
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<EventResponseShortDTO> addEvent(@Valid @RequestBody EventRequestDTO eventDTO) {
-        return ResponseEntity.ok(eventService.saveEvent(eventDTO));
+    public ResponseEntity<String> uploadPreview(@RequestPart("preview") MultipartFile file) {
+        String previewUrl = fileStorageService.store(file, "event"); // ← добавлен "event" как префикс
+        return ResponseEntity.ok(previewUrl);
+    }
+
+    /**
+     * Создаёт новое событие с возможностью загрузки превью
+     * @param dto - DTO события
+     * @param preview - опциональное изображение для превью
+     * @return DTO созданного события
+     */
+    @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Создать событие с превью", description = "Создаёт событие и прикрепляет к нему изображение")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "Событие успешно создано", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = EventResponseDTO.class))
+    })
+    @PreAuthorize("hasAuthority('users:write')")
+    public ResponseEntity<EventResponseDTO> createEvent(
+            @RequestPart("event") @Valid EventRequestDTO dto,
+            @RequestPart("preview") MultipartFile preview) {
+
+        String previewUrl = fileStorageService.store(preview, "event");
+        dto.setPreview(previewUrl);
+
+        EventResponseDTO created = eventService.saveEvent(dto);
+        return ResponseEntity.ok(created);
     }
 
     @PostMapping("/{eventID}")

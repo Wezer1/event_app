@@ -1,6 +1,7 @@
 package com.example.events_app.dto.event;
 
 import com.example.events_app.dto.user.UserMediumDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,8 +12,8 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "DTO для запроса создания и обновления события")
-public class EventRequestDTO {
+@Schema(description = "DTO для ответа события")
+public class EventResponseDTO {
     private Integer id;
 
     private String title;
@@ -31,9 +32,10 @@ public class EventRequestDTO {
 
     private boolean conducted;
 
-    private Integer eventTypeId;
+    private EventTypeDTO eventType;
 
-    private Integer userId;
+    @JsonProperty("owner")
+    private UserMediumDTO user;
 
     private String preview;
 }

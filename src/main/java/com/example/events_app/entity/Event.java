@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @Table(name = "events")
 @Data
 public class Event {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -50,4 +49,7 @@ public class Event {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "preview", length = 512)
+    private String preview;
 }
