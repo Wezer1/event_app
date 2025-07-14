@@ -19,7 +19,7 @@ public class EventFilterForUserDTO {
 
     private Integer userIdForEventFilter;
 
-    @Schema(description = "Поле для сортировки", example = "startDate")
+    @Schema(description = "Поле для сортировки", example = "startTime")
     private String sortBy = "title"; // Поле по умолчанию
 
     @Schema(description = "Направление сортировки", example = "DESC")
