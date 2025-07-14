@@ -1,6 +1,7 @@
 package com.example.events_app.entity;
 
 import com.example.events_app.model.EventParticipantStatus;
+import com.example.events_app.model.MembershipStatus;
 import lombok.*;
 
 import jakarta.persistence.*;
@@ -34,4 +35,8 @@ public class EventParticipant {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "membership_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MembershipStatus membershipStatus = MembershipStatus.VALID;
 }

@@ -6,20 +6,20 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
-//@Configuration
-//public class DbConfig {
-//
-//    @Bean
-//    public DataSource dataSource() {
-//        DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
-//        dataSourceBuilder.url("jdbc:postgresql://localhost:5432/trpo");
-//        dataSourceBuilder.username("user");
-//        dataSourceBuilder.password("user");
-//        dataSourceBuilder.driverClassName("org.postgresql.Driver");
-//        return dataSourceBuilder.build();
-//    }
-//
-//}
+@Configuration
+public class DbConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
+        dataSourceBuilder.url("jdbc:postgresql://localhost:5432/trpo");
+        dataSourceBuilder.username("user");
+        dataSourceBuilder.password("user");
+        dataSourceBuilder.driverClassName("org.postgresql.Driver");
+        return dataSourceBuilder.build();
+    }
+
+}
 
 //@Configuration
 //public class DbConfig {
@@ -51,17 +51,17 @@ import javax.sql.DataSource;
 //
 //}
 
-@Configuration
-public class DbConfig {
-
-    @Bean
-    public DataSource dataSource() {
-        DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
-        dataSourceBuilder.url("jdbc:postgresql://localhost:5432/trpo");
-        dataSourceBuilder.username("postgres");
-        dataSourceBuilder.password("20040725");
-        dataSourceBuilder.driverClassName("org.postgresql.Driver");
-        return dataSourceBuilder.build();
-    }
-
-}
+//@Configuration
+//public class DbConfig {
+//
+//    @Bean
+//    public DataSource dataSource() {
+//        DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
+//        dataSourceBuilder.url("jdbc:postgresql://localhost:5432/trpo");
+//        dataSourceBuilder.username("postgres");
+//        dataSourceBuilder.password("20040725");
+//        dataSourceBuilder.driverClassName("org.postgresql.Driver");
+//        return dataSourceBuilder.build();
+//    }
+//
+//}

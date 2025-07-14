@@ -1,11 +1,18 @@
 package com.example.events_app.service;
 
 import com.example.events_app.dto.bonus.BonusTypeDTO;
+import com.example.events_app.dto.bonus.BonusTypeFilterDTO;
 import com.example.events_app.entity.BonusType;
 import com.example.events_app.exceptions.NoSuchException;
+import com.example.events_app.filter.BonusTypeSpecification;
 import com.example.events_app.mapper.bonus.BonusTypeMapper;
+import com.example.events_app.model.SortDirection;
 import com.example.events_app.repository.BonusTypeRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -81,5 +88,15 @@ public class BonusTypeService {
             throw new NoSuchException("Bonus type not found with ID: " + id);
         }
         bonusTypeRepository.deleteById(id);
+    }
+
+    public Page<BonusTypeDTO> findWithFilter(BonusTypeFilterDTO filter) {
+        Sort sort = filter.getSortOrder() == SortDirection.ASC
+                ? Sort.by(filter.getSortBy()).ascending()
+                : Sort.by(filter.getSortBy()).descending();
+
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
+        return bonusTypeRepository.findAll(BonusTypeSpecification.withFilter(filter), pageable)
+                .map(bonusTypeMapper::toDto);
     }
 }

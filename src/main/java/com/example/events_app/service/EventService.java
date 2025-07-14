@@ -1,18 +1,18 @@
 package com.example.events_app.service;
 
-import com.example.events_app.dto.event.EventRequestDTO;
-import com.example.events_app.dto.event.EventResponseMediumDTO;
-import com.example.events_app.dto.event.EventFilterDTO;
-import com.example.events_app.dto.event.EventResponseShortDTO;
+import com.example.events_app.dto.event.*;
 import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventType;
 import com.example.events_app.entity.User;
 import com.example.events_app.exceptions.NoSuchException;
 import com.example.events_app.filter.EventSpecification;
+import com.example.events_app.filter.EventWithUserSpecification;
 import com.example.events_app.mapper.event.EventRequestMapper;
 import com.example.events_app.mapper.event.EventResponseMediumMapper;
 import com.example.events_app.mapper.event.EventResponseShortMapper;
 import com.example.events_app.mapper.event.EventTypeMapper;
+import com.example.events_app.model.SortDirection;
+import com.example.events_app.repository.EventParticipantRepository;
 import com.example.events_app.repository.EventRepository;
 import com.example.events_app.repository.EventTypeRepository;
 import com.example.events_app.repository.UserRepository;
@@ -21,10 +21,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,6 +44,7 @@ public class EventService {
     private final EventRequestMapper eventRequestMapper;
     private final UserRepository userRepository;
     private final EventTypeMapper eventTypeMapper;
+    private final EventParticipantRepository eventParticipantRepository;
 
     @Transactional
     public List<EventResponseMediumDTO> getAllEvents() {
@@ -130,10 +135,37 @@ public class EventService {
     }
 
     public Page<EventResponseMediumDTO> searchEvents(EventFilterDTO filter) {
-        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize());
+        Sort sort = filter.getSortOrder() == SortDirection.ASC
+                ? Sort.by(filter.getSortBy()).ascending()
+                : Sort.by(filter.getSortBy()).descending();
+
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
         Page<Event> eventsPage = eventRepository.findAll(EventSpecification.withFilter(filter), pageable);
 
         // Используем маппер из MapStruct
+        return eventsPage.map(eventResponseMediumMapper::toDto);
+    }
+    public Page<EventResponseMediumDTO> searchEventsWithUser(EventFilterForUserDTO filter) {
+       userRepository.findById(filter.getUserIdForEventFilter())
+                .orElseThrow(() -> new NoSuchException("User not found"));
+
+        List<Integer> allowedEventIds = filter.getUserIdForEventFilter() != null
+                ? eventParticipantRepository.findEventIdsByUserId(filter.getUserIdForEventFilter())
+                : Collections.emptyList();
+
+        Specification<Event> spec = (root, query, cb) -> {
+            if (!allowedEventIds.isEmpty()) {
+                return root.get("id").in(allowedEventIds); // ✅ Работает!
+            }
+            return cb.conjunction();
+        };
+
+        Sort sort = filter.getSortOrder() == SortDirection.ASC
+                ? Sort.by(filter.getSortBy()).ascending()
+                : Sort.by(filter.getSortBy()).descending();
+
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
+        Page<Event> eventsPage = eventRepository.findAll(spec, pageable);
         return eventsPage.map(eventResponseMediumMapper::toDto);
     }
 }

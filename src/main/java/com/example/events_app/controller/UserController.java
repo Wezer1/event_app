@@ -94,8 +94,7 @@ public class UserController {
     )
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
     public ResponseEntity<Page<UserDTO>> searchUsers(UserFilterDTO filter) {
-        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize());
-        return ResponseEntity.ok(userService.searchUsers(filter, pageable));
+        return ResponseEntity.ok(userService.searchUsers(filter));
     }
 
 }

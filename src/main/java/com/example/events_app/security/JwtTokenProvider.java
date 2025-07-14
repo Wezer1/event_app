@@ -57,7 +57,7 @@ public class JwtTokenProvider {
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
         StringBuilder stringBuilder = new StringBuilder(token);
-        stringBuilder.insert(0, "Bearer");
+        stringBuilder.insert(0, "Bearer ");
         return stringBuilder.toString();
     }
 
@@ -76,8 +76,8 @@ public class JwtTokenProvider {
             return null;
         }
 
-        if (bearerToken.startsWith("Bearer")) {
-            return bearerToken.substring("Bearer".getBytes().length);
+        if (bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring("Bearer ".getBytes().length);
         } else {
             return bearerToken;
         }

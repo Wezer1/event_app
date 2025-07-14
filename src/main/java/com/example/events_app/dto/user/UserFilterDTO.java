@@ -1,6 +1,7 @@
 package com.example.events_app.dto.user;
 
 import com.example.events_app.model.Role;
+import com.example.events_app.model.SortDirection;
 import lombok.Data;
 
 
@@ -24,6 +25,10 @@ public class UserFilterDTO {
 
     @Schema(description = "Роль пользователя: USER или ADMIN", example = "USER")
     private Role role;
+
+    private String sortBy = "fullName"; // Поле по умолчанию
+    private SortDirection sortOrder = SortDirection.DESC; // Направление по умолчанию
+
 
     @Schema(description = "Номер страницы", example = "0")
     private int page = 0;

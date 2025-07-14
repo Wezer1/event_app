@@ -1,5 +1,6 @@
 package com.example.events_app.service;
 
+import com.example.events_app.dto.bonus.UserBonusHistoryFilterDTO;
 import com.example.events_app.dto.bonus.UserBonusHistoryRequestDTO;
 import com.example.events_app.dto.bonus.UserBonusHistoryResponseMediumDTO;
 import com.example.events_app.dto.bonus.UserBonusHistoryResponseShortDTO;
@@ -7,14 +8,21 @@ import com.example.events_app.entity.BonusType;
 import com.example.events_app.entity.User;
 import com.example.events_app.entity.UserBonusHistory;
 import com.example.events_app.exceptions.NoSuchException;
+import com.example.events_app.filter.UserBonusHistorySpecification;
 import com.example.events_app.mapper.bonus.UserBonusHistoryRequestMapper;
 import com.example.events_app.mapper.bonus.UserBonusHistoryResponseMediumMapper;
 import com.example.events_app.mapper.bonus.UserBonusHistoryResponseShortMapper;
+import com.example.events_app.model.SortDirection;
 import com.example.events_app.repository.BonusTypeRepository;
 import com.example.events_app.repository.UserBonusHistoryRepository;
 import com.example.events_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,7 +119,7 @@ public class UserBonusHistoryService {
         // Уменьшаем общий баланс
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchException("There is no user with ID = " + userId));
-        user.setTotalBonusPoints(user.getTotalBonusPoints()-bonusValue);
+        user.setTotalBonusPoints(user.getTotalBonusPoints() - bonusValue);
 
     }
 
@@ -132,5 +140,17 @@ public class UserBonusHistoryService {
                 .orElseThrow(() -> new NoSuchException("Bonus history not found with ID: " + id));
         history.setActive(false);
         repository.save(history);
+    }
+
+    public Page<UserBonusHistoryResponseShortDTO> findWithFilter(UserBonusHistoryFilterDTO filter) {
+        Specification<UserBonusHistory> spec = UserBonusHistorySpecification.withFilter(filter);
+        Sort sort = filter.getSortOrder() == SortDirection.ASC
+                ? Sort.by(filter.getSortBy()).ascending()
+                : Sort.by(filter.getSortBy()).descending();
+
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
+
+        return repository.findAll(spec, pageable)
+                .map(userBonusHistoryResponseShortMapper::toDto);
     }
 }

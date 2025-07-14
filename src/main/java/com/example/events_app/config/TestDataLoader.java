@@ -1,30 +1,41 @@
 package com.example.events_app.config;
 
+import com.example.events_app.dto.user.UserRegistrationRequestDto;
 import com.example.events_app.entity.*;
+import com.example.events_app.mapper.user.UserRegisterRequestMapper;
 import com.example.events_app.model.EventParticipantStatus;
 import com.example.events_app.model.Role;
 import com.example.events_app.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class TestDataLoader implements CommandLineRunner {
 
+    private final UserRepository userRepository;
+    private final UserRegisterRequestMapper userRegisterRequestMapper;
     private final BonusTypeRepository bonusTypeRepository;
     private final EventTypeRepository eventTypeRepository;
-    private final UserRepository userRepository;
     private final UserBonusHistoryRepository userBonusHistoryRepository;
     private final EventRepository eventRepository;
     private final EventParticipantRepository eventParticipantRepository;
+    private static final Logger logger = LoggerFactory.getLogger(TestDataLoader.class);
 
     @Override
     public void run(String... args) throws Exception {
+
+        // Создаем первого пользователя (USER)
+
         LocalDateTime now = LocalDateTime.now();
 
         // 1. BonusType
@@ -47,6 +58,7 @@ public class TestDataLoader implements CommandLineRunner {
             bonusTypes.add(b3);
 
             bonusTypeRepository.saveAll(bonusTypes);
+            logger.info("Добавлено {} типов бонусов в базу данных.", bonusTypes.size());
         }
 
         // 2. EventType
@@ -74,34 +86,120 @@ public class TestDataLoader implements CommandLineRunner {
             types.get(4).setDescription("Неформальная встреча по интересам");
 
             eventTypeRepository.saveAll(types);
+            logger.info("Добавлено {} типов мероприятий в базу данных.", types.size());
+
         }
 
         // 3. User
         if (userRepository.count() == 0) {
             List<User> users = new ArrayList<>();
 
-            for (int i = 1; i <= 10; i++) {
-                User user = new User();
-                user.setFullName("Имя" + i);
-                user.setLogin("user" + i);
-                user.setPassword("password"); // можно хэшировать позже
-                user.setRole(Role.USER);
-                user.setRegisteredEventsCount(0);
-                user.setTotalBonusPoints(0);
+            // Реалистичные имена для пользователей
+            String[] firstNames = {"Иван", "Петр", "Сергей", "Александр", "Дмитрий",
+                    "Максим", "Евгений", "Олег", "Владимир", "Николай"};
+            String[] lastNames = {"Иванов", "Петров", "Смирнов", "Кузнецов", "Соколов",
+                    "Лебедев", "Новиков", "Григорьев", "Васильев", "Родионов"};
 
+            // Создаем 10 пользователей с реальными именами
+            for (int i = 0; i < 10; i++) {
+                String fullName = firstNames[i] + " " + lastNames[i];
+                String login = "user" + (i + 1);
+                String email = login + "@example.com";
+                String phone = "+790000000" + (i + 1);
+
+                UserRegistrationRequestDto dto = new UserRegistrationRequestDto(
+                        fullName,
+                        login,
+                        "password",
+                        Role.USER,
+                        email,
+                        phone
+                );
+
+                User user = userRegisterRequestMapper.toEntity(dto);
+                userRepository.save(user);
                 users.add(user);
+
+                System.out.println("Создан пользователь: " + dto.getLogin());
             }
 
+            String[] organizationNames = {
+                    "ООО \"Рога и Копыта\"",
+                    "ПАО \"Газпром\"",
+                    "ЗАО \"Сбербанк\"",
+                    "ИП \"Иванов И.И.\"",
+                    "ТД \"Строительство\"",
+                    "ООО \"IT-Профи\"",
+                    "ООО \"АвтоСервис\"",
+                    "ООО \"Электроника\"",
+                    "ООО \"ФудЛэнд\"",
+                    "ООО \"Юридические услуги\""
+            };
+
+            // Создаем несколько организаций
+            for (int i = 0; i < 5; i++) { // Например, 5 организаций
+                String fullName = organizationNames[i];
+                String login = "org" + (i + 1);
+                String email = login + "@example.com";
+                String phone = "+7987654321" + (i + 1);
+
+                UserRegistrationRequestDto orgDto = new UserRegistrationRequestDto(
+                        fullName,
+                        login,
+                        "orgpass",
+                        Role.ORGANIZATION,
+                        email,
+                        phone
+                );
+                User organization = userRegisterRequestMapper.toEntity(orgDto);
+                userRepository.save(organization);
+                users.add(organization);
+            }
             userRepository.saveAll(users);
+            UserRegistrationRequestDto user1 = new UserRegistrationRequestDto(
+                    "User Userov",   // full_name
+                    "user",          // login
+                    "user",          // password
+                    Role.USER,        // role
+                    "user",
+                    "user"
+            );
+
+            // Создаем второго пользователя (ADMIN)
+            UserRegistrationRequestDto user2 = new UserRegistrationRequestDto(
+                    "Admin Adminov",
+                    "admin",
+                    "admin",
+                    Role.ORGANIZATION,
+                    "admin",
+                    "admin"
+            );
+
+            // Сохраняем, если ещё не существует
+            if (userRepository.findByLogin(user1.getLogin()).isEmpty()) {
+                userRepository.save(userRegisterRequestMapper.toEntity(user1));
+                System.out.println("Создан пользователь: " + user1.getLogin());
+            }
+
+            if (userRepository.findByLogin(user2.getLogin()).isEmpty()) {
+                userRepository.save(userRegisterRequestMapper.toEntity(user2));
+                System.out.println("Создан пользователь: " + user2.getLogin());
+            }
+            logger.info("Добавлено {} пользователей в базу данных.", users.size());
+
         }
 
         // 4. UserBonusHistory
         if (userBonusHistoryRepository.count() == 0) {
             List<UserBonusHistory> histories = new ArrayList<>();
-            List<User> allUsers = userRepository.findAll();
             List<BonusType> allBonusTypes = bonusTypeRepository.findAll();
 
-            for (User user : allUsers) {
+            // Получаем только пользователей с ролью USER
+            List<User> usersWithUserRole = userRepository.findByRole(Role.USER)
+                    .stream()
+                    .collect(Collectors.toList());
+
+            for (User user : usersWithUserRole) {
                 for (int i = 0; i < 2; i++) {
                     UserBonusHistory history = new UserBonusHistory();
                     history.setUser(user);
@@ -116,51 +214,105 @@ public class TestDataLoader implements CommandLineRunner {
             }
 
             userBonusHistoryRepository.saveAll(histories);
+            logger.info("Добавлено {} записей истории бонусов для пользователей с ролью USER.", histories.size());
         }
 
         // 5. Event
         if (eventRepository.count() == 0) {
             List<Event> events = new ArrayList<>();
             List<EventType> allTypes = eventTypeRepository.findAll();
-            List<User> allUsers = userRepository.findAll();
 
-// Создаём события
-            for (int i = 1; i <= 2000; i++) {
+            // Получаем список пользователей с ролью ORGANIZATION
+            List<User> organizationUsers = userRepository.findByRole(Role.ORGANIZATION)
+                    .stream()
+                    .collect(Collectors.toList());
+
+            if (organizationUsers.isEmpty()) {
+                logger.warn("Нет пользователей с ролью ORGANIZATION для создания мероприятий.");
+            }
+
+            // Массивы с реалистичными данными
+            String[] titles = {
+                    "Технологическая конференция", "Финансовый форум", "Медицинская выставка",
+                    "Научный симпозиум", "Культурный фестиваль", "Спортивное мероприятие",
+                    "Образовательный семинар", "Экологическая конференция",
+                    "Кинофестиваль", "Книжная ярмарка"
+            };
+
+            String[] descriptions = {
+                    "Конференция по последним технологиям в области IT.",
+                    "Форум, посвященный финансовым инновациям и инвестициям.",
+                    "Выставка медицинского оборудования и технологий.",
+                    "Симпозиум, посвященный последним научным исследованиям.",
+                    "Фестиваль, представляющий культурное разнообразие.",
+                    "Спортивное мероприятие с участием международных команд.",
+                    "Семинар по современным образовательным технологиям.",
+                    "Конференция, посвященная вопросам экологии и устойчивого развития.",
+                    "Фестиваль, демонстрирующий лучшие фильмы года.",
+                    "Ярмарка, на которой представлены книги от ведущих издательств."
+            };
+
+            String[] locations = {
+                    "Москва, Кремль", "Санкт-Петербург, Экспофорум", "Казань, Международный центр",
+                    "Сочи, Олимпийский парк", "Новосибирск, Конгресс-холл", "Екатеринбург, Выставочный комплекс",
+                    "Нижний Новгород, Конференц-зал", "Краснодар, Культурный центр",
+                    "Владивосток, Морской терминал", "Калининград, Исторический музей"
+            };
+
+            for (int i = 0; i < 2000; i++) {
                 EventType type = allTypes.get((int) (Math.random() * allTypes.size()));
                 LocalDateTime start = now.plusDays((long) (Math.random() * 60));
                 LocalDateTime end = start.plusHours(2);
 
                 Event event = new Event();
-                event.setTitle("Событие #" + i);
-                event.setDescription("Описание события " + i);
+                event.setTitle(titles[(int) (Math.random() * titles.length)]);
+                event.setDescription(descriptions[(int) (Math.random() * descriptions.length)]);
                 event.setStartTime(start);
                 event.setEndTime(end);
-                event.setLocation("Локация " + ((i % 10) + 1));
+                event.setLocation(locations[(int) (Math.random() * locations.length)]);
                 event.setCreatedAt(now);
                 event.setUpdatedAt(now);
                 event.setConducted(false);
                 event.setEventType(type);
 
-                // 💥 Вот это важно! Устанавливаем пользователя
-                event.setUser(allUsers.get(i % allUsers.size())); // например, случайный пользователь
+                // Устанавливаем пользователя только из числа организаций
+                if (!organizationUsers.isEmpty()) {
+                    event.setUser(organizationUsers.get(i % organizationUsers.size()));
+                } else {
+                    // Можно выбросить исключение или пропустить установку
+                    event.setUser(null); // или удалите эту строку, если поле не nullable
+                }
 
                 events.add(event);
             }
 
             eventRepository.saveAll(events);
+            logger.info("Добавлено {} мероприятий в базу данных.", events.size());
         }
+
 
         // 6. EventParticipant
         if (eventParticipantRepository.count() == 0) {
+
+            // Убедитесь, что пользователи с логинами "user" и "admin" существуют
+            User user = userRepository.findByLogin("user").get();
+            User admin = userRepository.findByLogin("admin").get();
+
             List<EventParticipant> participants = new ArrayList<>();
+
             List<Event> allEvents = eventRepository.findAll();
-            List<User> allUsers = userRepository.findAll();
+
+            // Получаем только пользователей с ролью USER
+            List<User> regularUsers = userRepository.findByRole(Role.USER)
+                    .stream()
+                    .collect(Collectors.toList());
 
             for (Event event : allEvents) {
                 int participantsCount = (int) (Math.random() * 5) + 1;
 
                 for (int j = 0; j < participantsCount; j++) {
-                    User randomUser = allUsers.get((int) (Math.random() * allUsers.size()));
+                    // Выбираем только среди пользователей с ролью USER
+                    User randomUser = regularUsers.get((int) (Math.random() * regularUsers.size()));
 
                     EventParticipant participant = new EventParticipant();
                     EventParticipantId id = new EventParticipantId();
@@ -175,9 +327,37 @@ public class TestDataLoader implements CommandLineRunner {
 
                     participants.add(participant);
                 }
-            }
 
+                // Добавляем пользователей "user" и "admin" на каждое событие
+                if (user != null) {
+                    EventParticipant userParticipant = new EventParticipant();
+                    EventParticipantId userId = new EventParticipantId();
+                    userId.setUserId(user.getId());
+                    userId.setEventId(event.getId());
+                    userParticipant.setId(userId);
+                    userParticipant.setUser(user);
+                    userParticipant.setEvent(event);
+                    userParticipant.setStatus(EventParticipantStatus.CONFIRMED);
+                    userParticipant.setCreatedAt(now.minusDays(1));
+                    participants.add(userParticipant);
+                }
+
+                if (admin != null) {
+                    EventParticipant adminParticipant = new EventParticipant();
+                    EventParticipantId adminId = new EventParticipantId();
+                    adminId.setUserId(admin.getId());
+                    adminId.setEventId(event.getId());
+                    adminParticipant.setId(adminId);
+                    adminParticipant.setUser(admin);
+                    adminParticipant.setEvent(event);
+                    adminParticipant.setStatus(EventParticipantStatus.CONFIRMED);
+                    adminParticipant.setCreatedAt(now.minusDays(1));
+                    participants.add(adminParticipant);
+                }
+            }
             eventParticipantRepository.saveAll(participants);
+            logger.info("Добавлено {} записи на мероприятие пользователя в базу данных.", participants.size());
         }
+
     }
 }

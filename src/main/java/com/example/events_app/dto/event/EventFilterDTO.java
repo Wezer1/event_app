@@ -1,5 +1,6 @@
 package com.example.events_app.dto.event;
 
+import com.example.events_app.model.SortDirection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,11 +27,18 @@ public class EventFilterDTO {
     @Schema(description = "Дата начала события (до)")
     private LocalDateTime startDateTo;
 
+    @Schema(description = "Поле для сортировки", example = "startDate")
+    private String sortBy = "title"; // Поле по умолчанию
+
+    @Schema(description = "Направление сортировки", example = "DESC")
+    private SortDirection sortOrder = SortDirection.DESC; // Направление по умолчанию
+
     @Schema(description = "Номер страницы", example = "0")
     private int page = 0;
 
     @Schema(description = "Размер страницы", example = "50")
     private int size = 50;
 
+    private Integer userId;
     // Геттеры и сеттеры
 }

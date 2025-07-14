@@ -2,9 +2,11 @@ package com.example.events_app.controller;
 
 import com.example.events_app.dto.event.EventParticipantDTO;
 import com.example.events_app.dto.RegisterOrUnregisterRequest;
+import com.example.events_app.dto.event.EventParticipantFilterDTO;
 import com.example.events_app.service.EventParticipantService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -47,6 +49,51 @@ public class EventParticipantController {
         return eventParticipantService.getParticipantsByEventId(eventId);
     }
 
+    @GetMapping("/search")
+    @Operation(
+            summary = "Search event participants by filters",
+            description = "Allows searching event participants by user ID, event ID, status, membership status and registration date range. Supports pagination.",
+            externalDocs = @ExternalDocumentation(
+                    description = "Example request",
+                    url = "http://localhost:8080/api/participants/search?userId=5&eventId=100&status=CONFIRMED&membershipStatus=VALID&createdAtFrom=2025-01-01T00:00:00&createdAtTo=2025-04-30T23:59:59&page=0&size=10"
+            ),
+            parameters = {
+                    @Parameter(name = "userId", description = "ID of the participant user", example = "5"),
+                    @Parameter(name = "eventId", description = "ID of the event", example = "100"),
+                    @Parameter(name = "status", description = "Registration status of the participant", example = "CONFIRMED"),
+                    @Parameter(name = "membershipStatus", description = "Validity status of the participation", example = "VALID"),
+                    @Parameter(name = "createdAtFrom", description = "Filter by registration date (from)", example = "2025-01-01T00:00:00"),
+                    @Parameter(name = "createdAtTo", description = "Filter by registration date (to)", example = "2025-04-30T23:59:59"),
+                    @Parameter(name = "page", description = "Page number for pagination", example = "0"),
+                    @Parameter(name = "size", description = "Number of results per page", example = "10")
+            }
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = EventParticipantDTO.class),
+                    examples = @ExampleObject(
+                            value = "{ 'content': [ { " +
+                                    "'userId': { 'id': 5, 'fullName': 'Иван Иванов' }, " +
+                                    "'eventId': { 'id': 100, 'title': 'AI Конференция' }, " +
+                                    "'status': 'CONFIRMED', " +
+                                    "'membershipStatus': 'VALID', " +
+                                    "'createdAt': '2025-04-05T12:00:00' } ], " +
+                                    "'totalElements': 1, " +
+                                    "'totalPages': 1, " +
+                                    "'size': 10, " +
+                                    "'number': 0 }"
+                    )
+            )
+    )
+    @PreAuthorize("hasAuthority('users:read')")
+    public ResponseEntity<Page<EventParticipantDTO>> searchParticipants(EventParticipantFilterDTO filter) {
+        Page<EventParticipantDTO> result = eventParticipantService.findWithFilter(filter);
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping("/{userId}/{eventId}")
     @Operation(summary = "Обновить статус заявки", description = "Обновляет статус заявки пользователя на событие")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventParticipantDTO.class)))
@@ -61,7 +108,7 @@ public class EventParticipantController {
     @PostMapping("/unregister")
     @Operation(summary = "Отменить запись на событие", description = "Отменяет запись пользователя на мероприятие")
     @ApiResponse(responseCode = "200", description = "OK")
-    @PreAuthorize("hasAuthority('users:write')")
+    @PreAuthorize("hasAuthority('users:read')")
     public ResponseEntity<Void> unregister(@RequestBody RegisterOrUnregisterRequest request) {
         eventParticipantService.removeParticipant(request.getUserId(), request.getEventId());
         return ResponseEntity.ok().build();
@@ -70,7 +117,7 @@ public class EventParticipantController {
     @PostMapping("/register")
     @Operation(summary = "Записаться на событие", description = "Позволяет пользователю подать заявку на участие в событии")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventParticipantDTO.class)))
-    @PreAuthorize("hasAuthority('users:write')")
+    @PreAuthorize("hasAuthority('users:read')")
     public EventParticipantDTO register(@RequestBody RegisterOrUnregisterRequest request) {
         return eventParticipantService.registerUserForEvent(request.getUserId(), request.getEventId());
     }

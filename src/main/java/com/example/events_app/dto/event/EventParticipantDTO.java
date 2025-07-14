@@ -2,6 +2,7 @@ package com.example.events_app.dto.event;
 
 import com.example.events_app.dto.user.UserShortDTO;
 import com.example.events_app.model.EventParticipantStatus;
+import com.example.events_app.model.MembershipStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
@@ -20,4 +21,6 @@ public class EventParticipantDTO {
     private EventShortDTO eventId;
     private EventParticipantStatus status;
     private LocalDateTime createdAt;
+
+    private MembershipStatus membershipStatus;
 }

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Getter
 public enum Role {
     USER(Set.of(Permission.USERS_READ)),
-    ADMIN(Set.of(Permission.USERS_WRITE, Permission.USERS_READ));
+    ORGANIZATION(Set.of(Permission.USERS_WRITE, Permission.USERS_READ));
 
     private final Set<Permission> permissions;
 

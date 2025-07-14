@@ -11,6 +11,7 @@ import com.example.events_app.filter.UserSpecification;
 import com.example.events_app.mapper.user.UserMapper;
 import com.example.events_app.mapper.user.UserRegisterRequestMapper;
 import com.example.events_app.mapper.user.UserRegisterResponseMapper;
+import com.example.events_app.model.SortDirection;
 import com.example.events_app.repository.EventParticipantRepository;
 import com.example.events_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,7 +89,12 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    public Page<UserDTO> searchUsers(UserFilterDTO filter, Pageable pageable) {
+    public Page<UserDTO> searchUsers(UserFilterDTO filter) {
+        Sort sort = filter.getSortOrder() == SortDirection.ASC
+                ? Sort.by(filter.getSortBy()).ascending()
+                : Sort.by(filter.getSortBy()).descending();
+
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
         return userRepository.findAll(UserSpecification.withFilter(filter), pageable)
                 .map(userMapper::toDto);
     }

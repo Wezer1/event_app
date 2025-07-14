@@ -1,9 +1,6 @@
 package com.example.events_app.controller;
 
-import com.example.events_app.dto.event.EventRequestDTO;
-import com.example.events_app.dto.event.EventResponseMediumDTO;
-import com.example.events_app.dto.event.EventFilterDTO;
-import com.example.events_app.dto.event.EventResponseShortDTO;
+import com.example.events_app.dto.event.*;
 import com.example.events_app.service.EventService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -72,6 +69,44 @@ public class EventController {
     public ResponseEntity<Page<EventResponseMediumDTO>> searchEvents(EventFilterDTO filter) {
         Page<EventResponseMediumDTO> eventPage = eventService.searchEvents(filter);
         return ResponseEntity.ok(eventPage);
+    }
+
+    @GetMapping("/user/search")
+    @Operation(
+            summary = "Search events participated by a specific user",
+            description = "Returns paginated list of events that a specific user has participated in. Allows filtering by user ID.",
+            externalDocs = @ExternalDocumentation(
+                    description = "Example request",
+                    url = "http://localhost:8080/api/events/user/search?userIdForEventFilter=5&page=0&size=10"
+            ),
+            parameters = {
+                    @Parameter(name = "userIdForEventFilter", description = "ID of the user to find events they participate in", example = "5"),
+                    @Parameter(name = "page", description = "Page number for pagination", example = "0"),
+                    @Parameter(name = "size", description = "Number of results per page", example = "10")
+            }
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = EventResponseMediumDTO.class),
+                    examples = @ExampleObject(
+                            value = "{ 'content': [ { " +
+                                    "'id': 1, " +
+                                    "'title': 'AI Conference', " +
+                                    "'date': '2025-04-10T10:00:00' } ], " +
+                                    "'totalElements': 1, " +
+                                    "'totalPages': 1, " +
+                                    "'size': 10, " +
+                                    "'number': 0 }"
+                    )
+            )
+    )
+    @PreAuthorize("hasAuthority('users:read')")
+    public ResponseEntity<Page<EventResponseMediumDTO>> searchEventsWithUser(@ModelAttribute EventFilterForUserDTO filter) {
+        Page<EventResponseMediumDTO> result = eventService.searchEventsWithUser(filter);
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{eventId}")

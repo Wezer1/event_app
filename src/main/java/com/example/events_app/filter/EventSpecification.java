@@ -32,6 +32,13 @@ public class EventSpecification {
                 predicates.add(criteriaBuilder.or(inTitle, inDescription, inLocation));
             }
 
+            // Фильтр по userId
+            if (filter.getUserId() != null) {
+                predicates.add(
+                        criteriaBuilder.equal(root.get("user").get("id"), filter.getUserId())
+                );
+            }
+
             // Диапазон дат
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime defaultStart = now.minusYears(100);

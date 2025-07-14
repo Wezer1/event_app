@@ -1,16 +1,22 @@
 package com.example.events_app.controller;
 
+import com.example.events_app.dto.bonus.UserBonusHistoryFilterDTO;
 import com.example.events_app.dto.bonus.UserBonusHistoryRequestDTO;
 import com.example.events_app.dto.bonus.UserBonusHistoryResponseMediumDTO;
 import com.example.events_app.dto.bonus.UserBonusHistoryResponseShortDTO;
+import com.example.events_app.entity.UserBonusHistory;
 import com.example.events_app.service.UserBonusHistoryService;
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -57,6 +63,51 @@ public class UserBonusHistoryController {
             @PathVariable Integer id,
             @Valid @RequestBody UserBonusHistoryRequestDTO dto) {
         return ResponseEntity.ok(userBonusHistoryService.update(id, dto));
+    }
+
+    @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserBonusHistory.class),
+                    examples = @ExampleObject(
+                            value = "{ 'content': [ { " +
+                                    "'id': 1, " +
+                                    "'amount': 100, " +
+                                    "'reason': 'Referral bonus', " +
+                                    "'createdAt': '2025-04-05T12:00:00', " +
+                                    "'isActive': true } ], " +
+                                    "'totalElements': 1, " +
+                                    "'totalPages': 1, " +
+                                    "'size': 10, " +
+                                    "'number': 0 }"
+                    )
+            )
+    )
+
+    @GetMapping("/search")
+    @Operation(
+            summary = "Search user bonus history by filters",
+            description = "Allows searching user bonus history by user ID, bonus type ID, activity status and date range. Supports pagination.",
+            externalDocs = @ExternalDocumentation(
+                    description = "Example request",
+                    url = "http://localhost:8080/api/user-bonus/search?userId=5&bonusTypeId=10&isActive=true&createdAtFrom=2025-01-01T00:00:00&createdAtTo=2025-04-30T23:59:59&page=0&size=10"
+            ),
+            parameters = {
+                    @Parameter(name = "userId", description = "ID of the user", example = "5"),
+                    @Parameter(name = "bonusTypeId", description = "ID of the bonus type", example = "10"),
+                    @Parameter(name = "isActive", description = "Activity status of the record", example = "true"),
+                    @Parameter(name = "createdAtFrom", description = "Filter by creation date (from)", example = "2025-01-01T00:00:00"),
+                    @Parameter(name = "createdAtTo", description = "Filter by creation date (to)", example = "2025-04-30T23:59:59"),
+                    @Parameter(name = "page", description = "Page number for pagination", example = "0"),
+                    @Parameter(name = "size", description = "Number of results per page", example = "10")
+            }
+    )
+    @PreAuthorize("hasAuthority('users:read')")
+    public ResponseEntity<Page<UserBonusHistoryResponseShortDTO>> searchUserBonuses(@ModelAttribute UserBonusHistoryFilterDTO filter) {
+        Page<UserBonusHistoryResponseShortDTO> result = userBonusHistoryService.findWithFilter(filter);
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")
