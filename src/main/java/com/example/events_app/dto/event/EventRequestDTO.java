@@ -34,4 +34,6 @@ public class EventRequestDTO {
     private Integer eventTypeId;
 
     private Integer userId;
+
+    private String preview;
 }

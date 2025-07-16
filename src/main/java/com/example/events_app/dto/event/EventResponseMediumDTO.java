@@ -36,4 +36,9 @@ public class EventResponseMediumDTO {
 
     @JsonProperty("owner")
     private UserMediumDTO user;
+
+    private String preview; // Здесь будем хранить путь к изображению или base64 строку
+
+
+
 }

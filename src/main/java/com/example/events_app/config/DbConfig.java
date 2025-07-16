@@ -3,6 +3,8 @@ package com.example.events_app.config;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 
 import javax.sql.DataSource;
 
@@ -18,7 +20,6 @@ public class DbConfig {
         dataSourceBuilder.driverClassName("org.postgresql.Driver");
         return dataSourceBuilder.build();
     }
-
 }
 
 //@Configuration

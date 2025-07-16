@@ -75,16 +75,21 @@ public class EventService {
                     .orElseThrow(() -> new NoSuchException("EventType not found"));
         }
 
-        // ✅ Загружаем полный объект User по userId из DTO
         User user = userRepository.findById(eventDTO.getUserId())
                 .orElseThrow(() -> new NoSuchException("User not found"));
 
         Event eventToSave = eventRequestMapper.toEntity(eventDTO);
-        eventToSave.setUser(user); // ✅ Устанавливаем полностью заполненный объект User
+        eventToSave.setUser(user);
         eventToSave.setCreatedAt(now);
         eventToSave.setUpdatedAt(now);
+
         if (dbType != null) {
             eventToSave.setEventType(dbType);
+        }
+
+        // Устанавливаем превью, если оно есть
+        if (eventDTO.getPreview() != null) {
+            eventToSave.setPreview(eventDTO.getPreview());
         }
 
         Event savedEvent = eventRepository.save(eventToSave);

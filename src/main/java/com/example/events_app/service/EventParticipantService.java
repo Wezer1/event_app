@@ -2,6 +2,7 @@ package com.example.events_app.service;
 
 import com.example.events_app.dto.event.EventParticipantDTO;
 import com.example.events_app.dto.event.EventParticipantFilterDTO;
+import com.example.events_app.dto.event.EventParticipantResponseDTO;
 import com.example.events_app.dto.event.EventShortDTO;
 import com.example.events_app.dto.user.UserShortDTO;
 import com.example.events_app.entity.Event;
@@ -12,6 +13,7 @@ import com.example.events_app.exceptions.AlreadyExistsException;
 import com.example.events_app.exceptions.NoSuchException;
 import com.example.events_app.filter.EventParticipantSpecification;
 import com.example.events_app.mapper.event.EventParticipantMapper;
+import com.example.events_app.mapper.event.EventParticipantResponseMapper;
 import com.example.events_app.model.EventParticipantStatus;
 import com.example.events_app.model.MembershipStatus;
 import com.example.events_app.model.SortDirection;
@@ -42,7 +44,7 @@ public class EventParticipantService {
     private final EventParticipantMapper eventParticipantMapper;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
-
+    private final EventParticipantResponseMapper eventParticipantResponseMapper;
 
     /**
      * 1) Получение всей таблицы
@@ -89,6 +91,16 @@ public class EventParticipantService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public long countUserConfirmedEvents(Integer userId) {
+        return eventParticipantRepository.countByUserIdAndConfirmedStatus(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public long countCancelledEventsByUser(Integer userId) {
+        return eventParticipantRepository.countCancelledEventsByUser(userId);
+    }
+
     /**
      * 4) Изменение состояния события (например, пользователь поменял статус участия)
      * Предположим, что статус может быть "PENDING", "APPROVED", "DECLINED"
@@ -115,7 +127,7 @@ public class EventParticipantService {
 
         return eventParticipantMapper.toDto(updatedParticipant);
     }
-    public Page<EventParticipantDTO> findWithFilter(EventParticipantFilterDTO filter) {
+    public Page<EventParticipantResponseDTO> findWithFilter(EventParticipantFilterDTO filter) {
         log.info("Фильтр: {}", filter);
         // Создаем сортировку
         Sort sort = filter.getSortOrder() == SortDirection.ASC
@@ -127,7 +139,7 @@ public class EventParticipantService {
 
         // Выполняем запрос
         return eventParticipantRepository.findAll(EventParticipantSpecification.withFilter(filter), pageable)
-                .map(eventParticipantMapper::toDto);
+                .map(eventParticipantResponseMapper::toDto);
     }
 
     /**

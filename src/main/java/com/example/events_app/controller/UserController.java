@@ -4,15 +4,14 @@ import com.example.events_app.dto.user.UserDTO;
 import com.example.events_app.dto.user.UserFilterDTO;
 import com.example.events_app.dto.user.UserRegistrationRequestDto;
 import com.example.events_app.dto.user.UserRegistrationResponseDto;
-import com.example.events_app.entity.User;
+import com.example.events_app.security.SecurityUser;
 import com.example.events_app.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -68,6 +67,16 @@ public class UserController {
             @PathVariable Integer userId,
             @RequestBody UserRegistrationRequestDto userRegistrationRequestDto) {
         return ResponseEntity.ok(userService.changeUser(userId, userRegistrationRequestDto));
+    }
+
+    @PostMapping("/updateMe")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserRegistrationResponseDto> updateMe(
+            @RequestBody UserRegistrationRequestDto userRegistrationRequestDto,
+            Authentication authentication) {
+
+        Integer currentUserId = ((SecurityUser) authentication.getPrincipal()).getUserId();
+        return ResponseEntity.ok(userService.changeUser(currentUserId, userRegistrationRequestDto));
     }
 
     @DeleteMapping("/{userId}")

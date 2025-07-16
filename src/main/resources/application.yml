@@ -6,7 +6,20 @@ jwt:
   secret: mySpringProject
   header: Authorization
   expiration: 86400
+file:
+  upload-dir: uploads/previews
+logging:
+  level:
+      # Для диагностики multipart-запросов
+    org.springframework.web: DEBUG
+    org.springframework.web.multipart: TRACE
+    org.apache.tomcat.util.http: DEBUG
 spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB  # Максимальный размер файла
+      max-request-size: 10MB
   datasource:
     url: jdbc:postgresql://localhost:5432/trpo
     username: user
