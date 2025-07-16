@@ -50,4 +50,8 @@ public class Event {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "preview")
+    private String preview; // Здесь будем хранить путь к изображению или base64 строку
+
 }

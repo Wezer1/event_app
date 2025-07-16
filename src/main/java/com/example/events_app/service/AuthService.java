@@ -26,7 +26,7 @@ public class AuthService {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getLogin(), request.getPassword()));//проводим аунтицикацию через email и пароль
             User user = userRepository.findByLogin(request.getLogin()).orElseThrow(() -> new UsernameNotFoundException("User doesn't exists"));//если аунтификация успешна, с помощью email ищем пользователя
             String token = jwtTokenProvider.createToken(user);//если пользователь есть, то создаем токен
-            AuthResponseDTO authResponseDTO = new AuthResponseDTO(user.getId(), user.getLogin(), user.getFullName(), user.getRole(),token);
+            AuthResponseDTO authResponseDTO = new AuthResponseDTO(user.getId(),user.getLogin(),user.getFullName(), user.getRole(),token);
         return ResponseEntity.ok()
                 .header("Authorization", token) // можно оставить как резерв
                 .body(authResponseDTO);

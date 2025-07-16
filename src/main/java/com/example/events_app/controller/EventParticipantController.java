@@ -3,6 +3,7 @@ package com.example.events_app.controller;
 import com.example.events_app.dto.event.EventParticipantDTO;
 import com.example.events_app.dto.RegisterOrUnregisterRequest;
 import com.example.events_app.dto.event.EventParticipantFilterDTO;
+import com.example.events_app.dto.event.EventParticipantResponseDTO;
 import com.example.events_app.service.EventParticipantService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -89,9 +90,59 @@ public class EventParticipantController {
             )
     )
     @PreAuthorize("hasAuthority('users:read')")
-    public ResponseEntity<Page<EventParticipantDTO>> searchParticipants(EventParticipantFilterDTO filter) {
-        Page<EventParticipantDTO> result = eventParticipantService.findWithFilter(filter);
+    public ResponseEntity<Page<EventParticipantResponseDTO>> searchParticipants(EventParticipantFilterDTO filter) {
+        Page<EventParticipantResponseDTO> result = eventParticipantService.findWithFilter(filter);
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/users/{userId}/cancelled-events/count")
+    @Operation(
+            summary = "Get count of user's cancelled events",
+            description = "Returns total count of events that user has cancelled",
+            parameters = {
+                    @Parameter(name = "userId", description = "ID of the user", example = "5")
+            }
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = Long.class),
+                    examples = @ExampleObject(value = "3")
+            )
+    )
+    @PreAuthorize("hasAuthority('users:read')")
+    public ResponseEntity<Long> getCancelledEventsCount(
+            @PathVariable Integer userId) {
+
+        long count = eventParticipantService.countCancelledEventsByUser(userId);
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/users/{userId}/events/count")
+    @Operation(
+            summary = "Get count of user's confirmed events",
+            description = "Returns total count of events where user has CONFIRMED participation status",
+            parameters = {
+                    @Parameter(name = "userId", description = "ID of the user", example = "5")
+            }
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = Long.class),
+                    examples = @ExampleObject(value = "42")
+            )
+    )
+    @PreAuthorize("hasAuthority('users:read')")
+    public ResponseEntity<Long> getUserConfirmedEventsCount(
+            @PathVariable Integer userId) {
+
+        long count = eventParticipantService.countUserConfirmedEvents(userId);
+        return ResponseEntity.ok(count);
     }
 
     @PostMapping("/{userId}/{eventId}")

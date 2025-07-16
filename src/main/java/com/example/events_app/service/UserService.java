@@ -6,6 +6,7 @@ import com.example.events_app.dto.user.UserFilterDTO;
 import com.example.events_app.dto.user.UserRegistrationRequestDto;
 import com.example.events_app.dto.user.UserRegistrationResponseDto;
 import com.example.events_app.entity.User;
+import com.example.events_app.exceptions.AlreadyExistsException;
 import com.example.events_app.exceptions.NoSuchException;
 import com.example.events_app.filter.UserSpecification;
 import com.example.events_app.mapper.user.UserMapper;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,8 @@ public class UserService {
     private final UserRegisterRequestMapper userRegisterRequestMapper;
     private final UserRegisterResponseMapper userRegisterResponseMapper;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder; // Добавьте это
+
     @Transactional
     public List<UserRegistrationResponseDto> getAllUsers() {
         log.info("Get all Users");
@@ -62,22 +66,31 @@ public class UserService {
     }
 
     @Transactional
-    public UserRegistrationResponseDto changeUser(Integer userId, UserRegistrationRequestDto userRegistrationRequestDto){
-        Optional<User> optionalUser = userRepository.findById(userId);
-        if(optionalUser.isEmpty()){
-            throw new NoSuchException("There is no user with ID = "+ userId + " in Database");
-        }else{
-            User existingUser = optionalUser.get();
-            existingUser.setFullName(userRegistrationRequestDto.getFullName());
-            existingUser.setLogin(userRegistrationRequestDto.getLogin());
-            existingUser.setPassword(userRegistrationRequestDto.getPassword());
-            existingUser.setRole(userRegistrationRequestDto.getRole());
-            existingUser.setEmail(userRegistrationRequestDto.getEmail());
-            existingUser.setPhoneNumber(userRegistrationRequestDto.getPhoneNumber());
+    public UserRegistrationResponseDto changeUser(Integer userId, UserRegistrationRequestDto userRegistrationRequestDto) {
+        // 1. Проверяем, существует ли пользователь
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchException("There is no user with ID = " + userId + " in Database"));
 
-
-            return userRegisterResponseMapper.toRegistrationResponseDto(userRepository.save(existingUser));
+        // 2. Проверяем, пытается ли пользователь изменить логин
+        if (!existingUser.getLogin().equals(userRegistrationRequestDto.getLogin())) {
+            // 3. Если логин изменен - проверяем, не занят ли он другим пользователем
+            if (userRepository.findByLogin(userRegistrationRequestDto.getLogin()).isPresent()) {
+                throw new AlreadyExistsException("Login '" + userRegistrationRequestDto.getLogin() + "' is already taken");
+            }
         }
+
+
+        // 4. Обновляем данные пользователя
+        String encodedPassword = passwordEncoder.encode(userRegistrationRequestDto.getPassword());
+
+        existingUser.setFullName(userRegistrationRequestDto.getFullName());
+        existingUser.setLogin(userRegistrationRequestDto.getLogin());
+        existingUser.setPassword(encodedPassword); // Устанавливаем закодированный пароль
+        existingUser.setEmail(userRegistrationRequestDto.getEmail());
+        existingUser.setPhoneNumber(userRegistrationRequestDto.getPhoneNumber());
+
+        // 5. Сохраняем и возвращаем результат
+        return userRegisterResponseMapper.toRegistrationResponseDto(userRepository.save(existingUser));
     }
 
     @Transactional

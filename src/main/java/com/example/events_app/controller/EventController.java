@@ -2,19 +2,24 @@ package com.example.events_app.controller;
 
 import com.example.events_app.dto.event.*;
 import com.example.events_app.service.EventService;
+import com.example.events_app.service.FileStorageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/events")
@@ -23,6 +28,7 @@ import io.swagger.v3.oas.annotations.responses.*;
 public class EventController {
 
     private final EventService eventService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping("/")
     @Operation(summary = "Получить все события", description = "Возвращает список всех событий")
@@ -118,12 +124,20 @@ public class EventController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/")
-    @Operation(summary = "Создать событие", description = "Создаёт новое событие")
-    @ApiResponse(responseCode = "200", description = "Created", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventResponseMediumDTO.class)))
+    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Создать событие с превью", description = "Создаёт новое событие с возможностью загрузки превью")
+    @ApiResponse(responseCode = "200", description = "Created")
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<EventResponseShortDTO> addEvent(@Valid @RequestBody EventRequestDTO eventDTO) {
-        return ResponseEntity.ok(eventService.saveEvent(eventDTO));
+    public ResponseEntity<EventResponseShortDTO> addEvent(
+            @RequestPart("event") @Valid EventRequestDTO event,
+            @RequestPart(value = "preview", required = false) MultipartFile preview) {
+
+        if (preview != null && !preview.isEmpty()) {
+            String fileName = fileStorageService.storeFile(preview);
+            event.setPreview(fileName);
+        }
+
+        return ResponseEntity.ok(eventService.saveEvent(event));
     }
 
     @PostMapping("/{eventID}")
