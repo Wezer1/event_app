@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -21,19 +22,35 @@ import java.util.UUID;
 
 @Service
 public class FileStorageService {
-    private final Path rootLocation;
+    private final Path previewsLocation;
+    private final Path imagesLocation;
 
     @Autowired
     public FileStorageService(@Value("${file.upload-dir}") String uploadDir) {
-        this.rootLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+        this.previewsLocation = Paths.get(uploadDir, "previews").toAbsolutePath().normalize();
+        this.imagesLocation = Paths.get(uploadDir, "images").toAbsolutePath().normalize();
 
         try {
-            Files.createDirectories(rootLocation);
+            Files.createDirectories(previewsLocation);
+            Files.createDirectories(imagesLocation);
         } catch (IOException e) {
-            throw new RuntimeException("Could not create upload directory", e);
+            throw new RuntimeException("Could not create upload directories", e);
         }
     }
+
     public String storeFile(MultipartFile file) {
+        // Убрали сохранение в превью по умолчанию
+        throw new UnsupportedOperationException("Use storePreview() or storeAdditionalImage() explicitly");
+    }
+
+    public String storePreview(MultipartFile file) {
+        return storeFile(file, this.previewsLocation);
+    }
+
+    public String storeAdditionalImage(MultipartFile file) {
+        return storeFile(file, this.imagesLocation);
+    }
+    private String storeFile(MultipartFile file, Path location) {
         String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String newFilename = UUID.randomUUID() + extension;
@@ -46,7 +63,7 @@ public class FileStorageService {
                 throw new RuntimeException("Cannot store file with relative path outside current directory " + originalFilename);
             }
             try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, this.rootLocation.resolve(newFilename),
+                Files.copy(inputStream, location.resolve(newFilename),
                         StandardCopyOption.REPLACE_EXISTING);
             }
             return newFilename;
@@ -55,17 +72,11 @@ public class FileStorageService {
         }
     }
 
-    public Resource loadAsResource(String filename) {
-        try {
-            Path file = rootLocation.resolve(filename);
-            Resource resource = new UrlResource(file.toUri());
-            if (resource.exists() || resource.isReadable()) {
-                return resource;
-            } else {
-                throw new RuntimeException("Could not read file: " + filename);
-            }
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Could not read file: " + filename, e);
+    public void deleteFile(String filePath) throws IOException {
+        Path path = Paths.get(filePath).toAbsolutePath().normalize();
+        if (!Files.exists(path)) {
+            throw new FileNotFoundException("File not found: " + filePath);
         }
+        Files.delete(path);
     }
 }

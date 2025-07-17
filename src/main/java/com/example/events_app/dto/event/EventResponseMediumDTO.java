@@ -1,5 +1,6 @@
 package com.example.events_app.dto.event;
 
+import com.example.events_app.dto.event_pictures.EventImageDTO;
 import com.example.events_app.dto.user.UserMediumDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -39,6 +41,8 @@ public class EventResponseMediumDTO {
 
     private String preview; // Здесь будем хранить путь к изображению или base64 строку
 
+    private Integer totalVisitors;
 
-
+    @Schema(description = "Список путей к дополнительным изображениям")
+    private List<EventImageDTO> images;
 }

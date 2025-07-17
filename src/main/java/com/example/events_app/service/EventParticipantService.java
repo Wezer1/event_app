@@ -96,6 +96,7 @@ public class EventParticipantService {
         return eventParticipantRepository.countByUserIdAndConfirmedStatus(userId);
     }
 
+
     @Transactional(readOnly = true)
     public long countCancelledEventsByUser(Integer userId) {
         return eventParticipantRepository.countCancelledEventsByUser(userId);

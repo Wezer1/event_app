@@ -1,17 +1,17 @@
 package com.example.events_app.dto.event;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.example.events_app.dto.event_pictures.EventImageShortDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "DTO для запроса создания и обновления события")
-public class EventRequestDTO {
+public class EventRequestToUpdateDTO {
     private Integer id;
 
     private String title;
@@ -35,4 +35,6 @@ public class EventRequestDTO {
     private Integer userId;
 
     private String preview;
+
+    private List<EventImageShortDTO> currentImages;
 }

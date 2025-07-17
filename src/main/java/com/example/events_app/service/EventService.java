@@ -1,7 +1,10 @@
 package com.example.events_app.service;
 
 import com.example.events_app.dto.event.*;
+import com.example.events_app.dto.event_pictures.EventImageDTO;
+import com.example.events_app.dto.event_pictures.EventImageShortDTO;
 import com.example.events_app.entity.Event;
+import com.example.events_app.entity.EventImage;
 import com.example.events_app.entity.EventType;
 import com.example.events_app.entity.User;
 import com.example.events_app.exceptions.NoSuchException;
@@ -11,11 +14,9 @@ import com.example.events_app.mapper.event.EventRequestMapper;
 import com.example.events_app.mapper.event.EventResponseMediumMapper;
 import com.example.events_app.mapper.event.EventResponseShortMapper;
 import com.example.events_app.mapper.event.EventTypeMapper;
+import com.example.events_app.model.MembershipStatus;
 import com.example.events_app.model.SortDirection;
-import com.example.events_app.repository.EventParticipantRepository;
-import com.example.events_app.repository.EventRepository;
-import com.example.events_app.repository.EventTypeRepository;
-import com.example.events_app.repository.UserRepository;
+import com.example.events_app.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,7 +26,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,89 +51,224 @@ public class EventService {
     private final UserRepository userRepository;
     private final EventTypeMapper eventTypeMapper;
     private final EventParticipantRepository eventParticipantRepository;
+    private final FileStorageService fileStorageService;
+    private final EventImageRepository eventImageRepository;
 
     @Transactional
     public List<EventResponseMediumDTO> getAllEvents() {
         log.info("Get all events");
-        if (eventRepository.findAll().isEmpty()) {
+        List<Event> events = eventRepository.findAll();
+        if (events.isEmpty()) {
             throw new NoSuchException("No events");
         }
-        return eventRepository.findAll().stream().map(eventResponseMediumMapper::toDto).collect(Collectors.toList());
+
+        return events.stream()
+                .map(event -> {
+                    EventResponseMediumDTO dto = eventResponseMediumMapper.toDto(event);
+                    // Получаем количество участников с VALID статусом для данного события
+                    int validCount = eventParticipantRepository.countByEventIdAndMembershipStatus(
+                            event.getId(), MembershipStatus.VALID);
+                    dto.setTotalVisitors(validCount);
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     @Transactional
     public EventResponseMediumDTO getEventById(Integer eventId) {
         log.info("Get event by id: {} ", eventId);
-        Optional<Event> airplaneOptional = Optional.ofNullable(eventRepository.findById(eventId)
-                .orElseThrow(() -> new NoSuchException("There is no event with ID = " + eventId + " in DB")));
-        return eventResponseMediumMapper.toDto(airplaneOptional.get());
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NoSuchException("There is no event with ID = " + eventId + " in DB"));
+
+        EventResponseMediumDTO dto = eventResponseMediumMapper.toDto(event);
+        // Получаем количество участников с VALID статусом для данного события
+        int validCount = eventParticipantRepository.countByEventIdAndMembershipStatus(
+                eventId, MembershipStatus.VALID);
+        dto.setTotalVisitors(validCount);
+
+        return dto;
     }
 
     @Transactional
-    public EventResponseShortDTO saveEvent(EventRequestDTO eventDTO) {
-        log.info("Saving event: {}", eventDTO);
+    public EventResponseShortDTO saveEventWithImages(
+            EventRequestDTO eventDTO,
+            MultipartFile preview,
+            List<MultipartFile> additionalImages) {
 
+        // 1. Сначала сохраняем событие без изображений
         LocalDateTime now = LocalDateTime.now();
+        Event event = eventRequestMapper.toEntity(eventDTO);
+        event.setCreatedAt(now);
+        event.setUpdatedAt(now);
 
-        EventType dbType = null;
-        if (eventDTO.getEventTypeId() != null) {
-            dbType = eventTypeRepository.findById(eventDTO.getEventTypeId())
-                    .orElseThrow(() -> new NoSuchException("EventType not found"));
-        }
-
+        EventType dbType = eventTypeRepository.findById(eventDTO.getEventTypeId()).orElse(null);
         User user = userRepository.findById(eventDTO.getUserId())
                 .orElseThrow(() -> new NoSuchException("User not found"));
 
-        Event eventToSave = eventRequestMapper.toEntity(eventDTO);
-        eventToSave.setUser(user);
-        eventToSave.setCreatedAt(now);
-        eventToSave.setUpdatedAt(now);
+        event.setEventType(dbType);
+        event.setUser(user);
 
-        if (dbType != null) {
-            eventToSave.setEventType(dbType);
+        // 2. Сохраняем событие в БД (теперь у него есть ID)
+        Event savedEvent = eventRepository.save(event);
+
+        // 3. Обработка превью
+        if (preview != null && !preview.isEmpty()) {
+            String previewName = fileStorageService.storePreview(preview); // ← Изменили здесь
+            savedEvent.setPreview("uploads/previews/" + previewName);
         }
 
-        // Устанавливаем превью, если оно есть
-        if (eventDTO.getPreview() != null) {
-            eventToSave.setPreview(eventDTO.getPreview());
+        // 4. Обработка дополнительных изображений (используем правильный метод)
+        if (additionalImages != null) {
+            for (MultipartFile image : additionalImages) {
+                if (image != null && !image.isEmpty()) {
+                    String fileName = fileStorageService.storeAdditionalImage(image); // ← И здесь
+                    EventImage eventImage = new EventImage();
+                    eventImage.setEvent(savedEvent);
+                    eventImage.setFilePath("uploads/images/" + fileName);
+                    eventImageRepository.save(eventImage);
+                }
+            }
         }
 
-        Event savedEvent = eventRepository.save(eventToSave);
-
-        return eventResponseShortMapper.toDto(savedEvent);
+        // 5. Обновляем событие (если изменилось превью)
+        return eventResponseShortMapper.toDto(eventRepository.save(savedEvent));
     }
 
     @Transactional
-    public EventResponseShortDTO changeEvent(Integer eventId, EventRequestDTO eventDTO) {
-        log.info("Updating event with ID {}: {}", eventId, eventDTO);
+    public EventResponseShortDTO changeEvent(Integer eventId,
+                                             EventRequestToUpdateDTO eventDTO,
+                                             MultipartFile preview,
+                                             List<MultipartFile> newImages) {
 
-        Event existingEvent = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NoSuchException("There is no event with ID = " + eventId + " in Database"));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NoSuchException("Event not found"));
 
-        // 🔁 Обновляем поля из DTO
-        Event updatedEvent = eventRequestMapper.toEntity(eventDTO);
-        updatedEvent.setId(existingEvent.getId());
-        updatedEvent.setCreatedAt(existingEvent.getCreatedAt()); // оставляем дату создания
-        updatedEvent.setUpdatedAt(LocalDateTime.now());
-
-        // 🔁 Обновляем тип события
-        if (eventDTO.getEventTypeId() != null) {
-            EventType dbType = eventTypeRepository.findById(eventDTO.getEventTypeId())
-                    .orElseThrow(() -> new NoSuchException("EventType not found"));
-            updatedEvent.setEventType(dbType);
+        // 1. Обработка превью
+        if (preview != null && !preview.isEmpty()) {
+            handlePreviewUpdate(event, preview);
         }
 
-        Event savedEvent = eventRepository.save(updatedEvent);
-        return eventResponseShortMapper.toDto(savedEvent);
+        // 2. Обработка изображений
+        if (eventDTO.getCurrentImages() != null) {
+            handleImagesUpdate(event, eventDTO.getCurrentImages(), newImages);
+        }
+
+        // 3. Обновление полей события
+        updateBasicEventFields(event, eventDTO);
+
+        return eventResponseShortMapper.toDto(eventRepository.save(event));
+    }
+
+    private void handlePreviewUpdate(Event event, MultipartFile newPreview) {
+        // Удаляем старое превью, если оно существует
+        if (event.getPreview() != null) {
+            try {
+                Path oldPreviewPath = Paths.get(event.getPreview());
+                Files.deleteIfExists(oldPreviewPath);
+            } catch (IOException e) {
+                log.error("Failed to delete old preview: {}", e.getMessage());
+                throw new RuntimeException("Failed to delete old preview", e);
+            }
+        }
+
+        // Сохраняем новое превью
+        String newPreviewName = fileStorageService.storePreview(newPreview);
+        event.setPreview("uploads/previews/" + newPreviewName);
+    }
+
+    private void handleImagesUpdate(Event event,
+                                    List<EventImageShortDTO> currentImagesDTO,
+                                    List<MultipartFile> newImages) {
+
+        List<EventImage> existingImages = eventImageRepository.findByEvent_Id(event.getId());
+
+        // Удаляем изображения, которых нет в currentImagesDTO
+        existingImages.stream()
+                .filter(existingImage -> currentImagesDTO.stream()
+                        .noneMatch(dto -> dto.getFilePath().equals(existingImage.getFilePath())))
+                .forEach(image -> {
+                    try {
+                        Files.deleteIfExists(Paths.get(image.getFilePath()));
+                        eventImageRepository.delete(image);
+                    } catch (IOException e) {
+                        log.error("Failed to delete image file: {}", e.getMessage());
+                        throw new RuntimeException("Failed to delete image file", e);
+                    }
+                });
+
+        // Добавляем новые изображения
+        if (newImages != null && !newImages.isEmpty()) {
+            for (MultipartFile file : newImages) {
+                if (file != null && !file.isEmpty()) {
+                    String fileName = fileStorageService.storeAdditionalImage(file);
+                    EventImage newImage = new EventImage();
+                    newImage.setEvent(event);
+                    newImage.setFilePath("uploads/images/" + fileName);
+                    eventImageRepository.save(newImage);
+                }
+            }
+        }
+    }
+
+    private void updateBasicEventFields(Event event, EventRequestToUpdateDTO dto) {
+        if (dto.getTitle() != null) {
+            event.setTitle(dto.getTitle());
+        }
+        if (dto.getDescription() != null) {
+            event.setDescription(dto.getDescription());
+        }
+        if (dto.getStartTime() != null) {
+            event.setStartTime(dto.getStartTime());
+        }
+        if (dto.getEndTime() != null) {
+            event.setEndTime(dto.getEndTime());
+        }
+        if (dto.getLocation() != null) {
+            event.setLocation(dto.getLocation());
+        }
+        if (dto.getEventTypeId() != null) {
+            EventType type = eventTypeRepository.findById(dto.getEventTypeId())
+                    .orElseThrow(() -> new NoSuchException("EventType not found"));
+            event.setEventType(type);
+        }
+        event.setUpdatedAt(LocalDateTime.now());
     }
 
     @Transactional
     public void deleteEvent(Integer eventId) {
-        log.info("Delete event");
+        log.info("Delete event with ID: {}", eventId);
+
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NoSuchException("There is no event with ID = " + eventId + " in Database"));
 
-        // Удаляем событие
+        // 1. Удаляем превью (если есть)
+        if (event.getPreview() != null) {
+            try {
+                Path previewPath = Paths.get(event.getPreview());
+                Files.deleteIfExists(previewPath);
+            } catch (IOException e) {
+                log.error("Failed to delete preview file: {}", event.getPreview(), e);
+                throw new RuntimeException("Failed to delete preview file", e);
+            }
+        }
+
+        // 2. Удаляем дополнительные изображения (если есть)
+        List<EventImage> eventImages = eventImageRepository.findByEvent_Id(eventId);
+        for (EventImage image : eventImages) {
+            try {
+                // Удаляем файл с диска
+                Path imagePath = Paths.get(image.getFilePath());
+                Files.deleteIfExists(imagePath);
+
+                // Удаляем запись из БД
+                eventImageRepository.delete(image);
+            } catch (IOException e) {
+                log.error("Failed to delete image file: {}", image.getFilePath(), e);
+                throw new RuntimeException("Failed to delete image file", e);
+            }
+        }
+
+        // 3. Удаляем само событие (каскадно удалит связанные сущности, если настроено)
         eventRepository.delete(event);
     }
 
@@ -147,11 +288,17 @@ public class EventService {
         Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
         Page<Event> eventsPage = eventRepository.findAll(EventSpecification.withFilter(filter), pageable);
 
-        // Используем маппер из MapStruct
-        return eventsPage.map(eventResponseMediumMapper::toDto);
+        return eventsPage.map(event -> {
+            EventResponseMediumDTO dto = eventResponseMediumMapper.toDto(event);
+            int validCount = eventParticipantRepository.countByEventIdAndMembershipStatus(
+                    event.getId(), MembershipStatus.VALID);
+            dto.setTotalVisitors(validCount);
+            return dto;
+        });
     }
+
     public Page<EventResponseMediumDTO> searchEventsWithUser(EventFilterForUserDTO filter) {
-       userRepository.findById(filter.getUserIdForEventFilter())
+        userRepository.findById(filter.getUserIdForEventFilter())
                 .orElseThrow(() -> new NoSuchException("User not found"));
 
         List<Integer> allowedEventIds = filter.getUserIdForEventFilter() != null
@@ -160,7 +307,7 @@ public class EventService {
 
         Specification<Event> spec = (root, query, cb) -> {
             if (!allowedEventIds.isEmpty()) {
-                return root.get("id").in(allowedEventIds); // ✅ Работает!
+                return root.get("id").in(allowedEventIds);
             }
             return cb.conjunction();
         };
@@ -171,6 +318,13 @@ public class EventService {
 
         Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
         Page<Event> eventsPage = eventRepository.findAll(spec, pageable);
-        return eventsPage.map(eventResponseMediumMapper::toDto);
+
+        return eventsPage.map(event -> {
+            EventResponseMediumDTO dto = eventResponseMediumMapper.toDto(event);
+            int validCount = eventParticipantRepository.countByEventIdAndMembershipStatus(
+                    event.getId(), MembershipStatus.VALID);
+            dto.setTotalVisitors(validCount);
+            return dto;
+        });
     }
 }
