@@ -3,6 +3,7 @@ package com.example.events_app.repository;
 import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventParticipant;
 import com.example.events_app.entity.EventParticipantId;
+import com.example.events_app.model.MembershipStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,8 @@ public interface EventParticipantRepository extends JpaRepository<EventParticipa
     @Query("SELECT COUNT(ep) FROM EventParticipant ep WHERE ep.id.userId = :userId AND ep.status = 'CONFIRMED'")
     long countByUserIdAndConfirmedStatus(@Param("userId") Integer userId);
 
+    @Query("SELECT COUNT(ep) FROM EventParticipant ep WHERE ep.id.eventId = :eventId AND ep.membershipStatus = :status")
+    int countByEventIdAndMembershipStatus(@Param("eventId") Integer eventId, @Param("status") MembershipStatus status);
 
     @Query("SELECT COUNT(ep) FROM EventParticipant ep WHERE ep.id.userId = :userId AND ep.status = 'CANCELLED'")
     long countCancelledEventsByUser(@Param("userId") Integer userId);
