@@ -113,7 +113,19 @@ public class EventService {
 
         // 3. Обработка превью
         if (preview != null && !preview.isEmpty()) {
-            String previewName = fileStorageService.storePreview(preview); // ← Изменили здесь
+            // Сохраняем превью (автоматически сохранит оригинал + сжатое превью)
+            String previewName = fileStorageService.storePreview(preview);
+
+            // Удаляем старое превью (если было)
+            if (savedEvent.getPreview() != null) {
+                try {
+                    fileStorageService.deleteFile(savedEvent.getPreview());
+                } catch (RuntimeException e) {
+                    log.error("Failed to delete old preview: {}", e.getMessage());
+                }
+            }
+
+            // Сохраняем путь к сжатому превью
             savedEvent.setPreview("uploads/previews/" + previewName);
         }
 
@@ -160,14 +172,13 @@ public class EventService {
     }
 
     private void handlePreviewUpdate(Event event, MultipartFile newPreview) {
-        // Удаляем старое превью, если оно существует
+        // Удаляем старое превью и оригинал, если они существуют
         if (event.getPreview() != null) {
             try {
-                Path oldPreviewPath = Paths.get(event.getPreview());
-                Files.deleteIfExists(oldPreviewPath);
-            } catch (IOException e) {
+                fileStorageService.deleteFile(event.getPreview()); // Удалит и превью, и оригинал
+            } catch (RuntimeException e) {
                 log.error("Failed to delete old preview: {}", e.getMessage());
-                throw new RuntimeException("Failed to delete old preview", e);
+                // Не бросаем исключение, чтобы не прерывать обновление
             }
         }
 
