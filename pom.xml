@@ -66,11 +66,11 @@
             <scope>runtime</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-            <version>4.17.2</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.liquibase</groupId>-->
+<!--            <artifactId>liquibase-core</artifactId>-->
+<!--            <version>4.17.2</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -122,22 +122,22 @@
         <plugins>
 
 <!--             1. Plugin: maven-resources-plugin — исключаем ненужные файлы-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-resources-plugin</artifactId>-->
-<!--                <version>3.3.1</version>-->
-<!--                <configuration>-->
-<!--                    <resources>-->
-<!--                        <resource>-->
-<!--                            <directory>src/main/resources</directory>-->
-<!--                            <excludes>-->
-<!--                                <exclude>db.changelog/**</exclude>-->
-<!--                                <exclude>docker-compose.yml</exclude>-->
-<!--                            </excludes>-->
-<!--                        </resource>-->
-<!--                    </resources>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <resources>
+                        <resource>
+                            <directory>src/main/resources</directory>
+                            <excludes>
+                                <exclude>db.changelog/**</exclude>
+                                <exclude>docker-compose.yml</exclude>
+                            </excludes>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>
 
             <!-- 2. Компилятор Java -->
             <plugin>

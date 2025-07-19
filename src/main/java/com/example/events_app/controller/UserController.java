@@ -1,10 +1,12 @@
 package com.example.events_app.controller;
 
+import com.example.events_app.dto.organizer.OrganizerStatsDTO;
 import com.example.events_app.dto.user.UserDTO;
 import com.example.events_app.dto.user.UserFilterDTO;
 import com.example.events_app.dto.user.UserRegistrationRequestDto;
 import com.example.events_app.dto.user.UserRegistrationResponseDto;
 import com.example.events_app.security.SecurityUser;
+import com.example.events_app.service.StatsService;
 import com.example.events_app.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import io.swagger.v3.oas.annotations.responses.*;
 public class UserController {
 
     private final UserService userService;
+    private final StatsService statsService;
 
     @PostMapping("/registration")
     @Operation(summary = "Регистрация пользователя", description = "Создаёт нового пользователя")
@@ -69,6 +72,18 @@ public class UserController {
         return ResponseEntity.ok(userService.changeUser(userId, userRegistrationRequestDto));
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Получить информацию о текущем пользователе",
+            description = "Возвращает данные аутентифицированного пользователя")
+    @ApiResponse(responseCode = "200", description = "OK",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = UserRegistrationResponseDto.class)))
+    public ResponseEntity<UserRegistrationResponseDto> getMe(Authentication authentication) {
+        Integer currentUserId = ((SecurityUser) authentication.getPrincipal()).getUserId();
+        return ResponseEntity.ok(userService.getUserById(currentUserId));
+    }
+
     @PostMapping("/updateMe")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserRegistrationResponseDto> updateMe(
@@ -86,6 +101,20 @@ public class UserController {
     public ResponseEntity<UserRegistrationResponseDto> deleteUser(@PathVariable Integer userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{organizerId}/stats")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Получить статистику организатора")
+    @ApiResponse(responseCode = "200", description = "OK",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = OrganizerStatsDTO.class)))
+    public ResponseEntity<OrganizerStatsDTO> getOrganizerStats(
+            @PathVariable Integer organizerId,
+            Authentication authentication) {
+
+        // Можно добавить проверку, что запрашивающий имеет доступ к этим данным
+        return ResponseEntity.ok(statsService.getOrganizerStats(organizerId));
     }
 
     @GetMapping("/search")

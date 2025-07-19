@@ -17,4 +17,8 @@ public class UserRegistrationResponseDto {
     private String login;
 
     private Role role;
+
+    private String phoneNumber;
+
+    private String email;
 }
