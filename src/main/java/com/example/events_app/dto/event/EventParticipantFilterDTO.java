@@ -16,6 +16,7 @@ public class EventParticipantFilterDTO {
 
     private Integer userId;
     private Integer eventId;
+    private String eventTitle; // Добавлено новое поле для фильтрации по названию события
 
     private EventParticipantStatus status;
     private MembershipStatus membershipStatus;
