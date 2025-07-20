@@ -17,6 +17,14 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.web.multipart: TRACE
     org.apache.tomcat.util.http: DEBUG
+server:
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: password  # Пароль, который вы указали при генерации
+    key-store-type: PKCS12
+    key-alias: mydomain
+  port: 8443  # Стандартный порт для HTTPS (можно изменить)
 spring:
   servlet:
     multipart:
