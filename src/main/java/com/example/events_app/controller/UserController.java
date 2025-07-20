@@ -1,10 +1,7 @@
 package com.example.events_app.controller;
 
 import com.example.events_app.dto.organizer.OrganizerStatsDTO;
-import com.example.events_app.dto.user.UserDTO;
-import com.example.events_app.dto.user.UserFilterDTO;
-import com.example.events_app.dto.user.UserRegistrationRequestDto;
-import com.example.events_app.dto.user.UserRegistrationResponseDto;
+import com.example.events_app.dto.user.*;
 import com.example.events_app.security.SecurityUser;
 import com.example.events_app.service.StatsService;
 import com.example.events_app.service.UserService;
@@ -68,7 +65,7 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserRegistrationResponseDto.class)))
     public ResponseEntity<UserRegistrationResponseDto> changeUser(
             @PathVariable Integer userId,
-            @RequestBody UserRegistrationRequestDto userRegistrationRequestDto) {
+            @RequestBody UserUpdateRequestDTO userRegistrationRequestDto) {
         return ResponseEntity.ok(userService.changeUser(userId, userRegistrationRequestDto));
     }
 
@@ -87,7 +84,7 @@ public class UserController {
     @PostMapping("/updateMe")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserRegistrationResponseDto> updateMe(
-            @RequestBody UserRegistrationRequestDto userRegistrationRequestDto,
+            @RequestBody UserUpdateRequestDTO userRegistrationRequestDto,
             Authentication authentication) {
 
         Integer currentUserId = ((SecurityUser) authentication.getPrincipal()).getUserId();
