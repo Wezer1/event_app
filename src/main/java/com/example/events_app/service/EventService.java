@@ -3,6 +3,7 @@ package com.example.events_app.service;
 import com.example.events_app.dto.event.*;
 import com.example.events_app.dto.event_pictures.EventImageDTO;
 import com.example.events_app.dto.event_pictures.EventImageShortDTO;
+import com.example.events_app.dto.organizer.OrganizerStatsDTO;
 import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventImage;
 import com.example.events_app.entity.EventType;
@@ -10,10 +11,7 @@ import com.example.events_app.entity.User;
 import com.example.events_app.exceptions.NoSuchException;
 import com.example.events_app.filter.EventSpecification;
 import com.example.events_app.filter.EventWithUserSpecification;
-import com.example.events_app.mapper.event.EventRequestMapper;
-import com.example.events_app.mapper.event.EventResponseMediumMapper;
-import com.example.events_app.mapper.event.EventResponseShortMapper;
-import com.example.events_app.mapper.event.EventTypeMapper;
+import com.example.events_app.mapper.event.*;
 import com.example.events_app.model.MembershipStatus;
 import com.example.events_app.model.SortDirection;
 import com.example.events_app.repository.*;
@@ -53,6 +51,7 @@ public class EventService {
     private final EventParticipantRepository eventParticipantRepository;
     private final FileStorageService fileStorageService;
     private final EventImageRepository eventImageRepository;
+    private final EventResponseMediumWithOutImagesMapper eventResponseMediumWithOutImagesMapper;
 
     @Transactional
     public List<EventResponseMediumDTO> getAllEvents() {
@@ -113,7 +112,19 @@ public class EventService {
 
         // 3. Обработка превью
         if (preview != null && !preview.isEmpty()) {
-            String previewName = fileStorageService.storePreview(preview); // ← Изменили здесь
+            // Сохраняем превью (автоматически сохранит оригинал + сжатое превью)
+            String previewName = fileStorageService.storePreview(preview);
+
+            // Удаляем старое превью (если было)
+            if (savedEvent.getPreview() != null) {
+                try {
+                    fileStorageService.deleteFile(savedEvent.getPreview());
+                } catch (RuntimeException e) {
+                    log.error("Failed to delete old preview: {}", e.getMessage());
+                }
+            }
+
+            // Сохраняем путь к сжатому превью
             savedEvent.setPreview("uploads/previews/" + previewName);
         }
 
@@ -160,14 +171,13 @@ public class EventService {
     }
 
     private void handlePreviewUpdate(Event event, MultipartFile newPreview) {
-        // Удаляем старое превью, если оно существует
+        // Удаляем старое превью и оригинал, если они существуют
         if (event.getPreview() != null) {
             try {
-                Path oldPreviewPath = Paths.get(event.getPreview());
-                Files.deleteIfExists(oldPreviewPath);
-            } catch (IOException e) {
+                fileStorageService.deleteFile(event.getPreview()); // Удалит и превью, и оригинал
+            } catch (RuntimeException e) {
                 log.error("Failed to delete old preview: {}", e.getMessage());
-                throw new RuntimeException("Failed to delete old preview", e);
+                // Не бросаем исключение, чтобы не прерывать обновление
             }
         }
 
@@ -280,7 +290,7 @@ public class EventService {
         eventRepository.save(event);
     }
 
-    public Page<EventResponseMediumDTO> searchEvents(EventFilterDTO filter) {
+    public Page<EventResponseMediumWithOutImagesDTO> searchEvents(EventFilterDTO filter) {
         Sort sort = filter.getSortOrder() == SortDirection.ASC
                 ? Sort.by(filter.getSortBy()).ascending()
                 : Sort.by(filter.getSortBy()).descending();
@@ -289,7 +299,7 @@ public class EventService {
         Page<Event> eventsPage = eventRepository.findAll(EventSpecification.withFilter(filter), pageable);
 
         return eventsPage.map(event -> {
-            EventResponseMediumDTO dto = eventResponseMediumMapper.toDto(event);
+            EventResponseMediumWithOutImagesDTO dto = eventResponseMediumWithOutImagesMapper.toDto(event);
             int validCount = eventParticipantRepository.countByEventIdAndMembershipStatus(
                     event.getId(), MembershipStatus.VALID);
             dto.setTotalVisitors(validCount);
@@ -297,7 +307,7 @@ public class EventService {
         });
     }
 
-    public Page<EventResponseMediumDTO> searchEventsWithUser(EventFilterForUserDTO filter) {
+    public Page<EventResponseMediumWithOutImagesDTO> searchEventsWithUser(EventFilterForUserDTO filter) {
         userRepository.findById(filter.getUserIdForEventFilter())
                 .orElseThrow(() -> new NoSuchException("User not found"));
 
@@ -320,7 +330,7 @@ public class EventService {
         Page<Event> eventsPage = eventRepository.findAll(spec, pageable);
 
         return eventsPage.map(event -> {
-            EventResponseMediumDTO dto = eventResponseMediumMapper.toDto(event);
+            EventResponseMediumWithOutImagesDTO dto = eventResponseMediumWithOutImagesMapper.toDto(event);
             int validCount = eventParticipantRepository.countByEventIdAndMembershipStatus(
                     event.getId(), MembershipStatus.VALID);
             dto.setTotalVisitors(validCount);

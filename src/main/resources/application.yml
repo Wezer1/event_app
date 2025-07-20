@@ -8,36 +8,47 @@ jwt:
   expiration: 86400
 file:
   upload-dir: uploads
+  preview:
+    max-width: 512
+    quality: 0.85
 logging:
   level:
       # Для диагностики multipart-запросов
     org.springframework.web: DEBUG
     org.springframework.web.multipart: TRACE
     org.apache.tomcat.util.http: DEBUG
+server:
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: password  # Пароль, который вы указали при генерации
+    key-store-type: PKCS12
+    key-alias: mydomain
+  port: 8443  # Стандартный порт для HTTPS (можно изменить)
 spring:
   servlet:
     multipart:
       enabled: true
       max-file-size: 10MB  # Максимальный размер файла
-      max-request-size: 10MB
-  datasource:
-    url: jdbc:postgresql://localhost:5432/trpo
-    username: user
-    password: user
-    driver-class-name: org.postgresql.Driver
-  liquibase:
-    change-log: classpath:db.changelog/db.changelog-master.xml
-    enabled: true
+      max-request-size: 100MB
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/trpo
+#    username: user
+#    password: user
+#    driver-class-name: org.postgresql.Driver
+#  liquibase:
+#    change-log: classpath:db.changelog/db.changelog-master.xml
+#    enabled: true
 #  datasource:
 #    url: jdbc:postgresql://localhost:5432/trpo
 #    username: postgres
 #    password: 20040725
 #    driver-class-name: org.postgresql.Driver
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/events_app
-#    username: postgres
-#    password: postgres
-#    driver-class-name: org.postgresql.Driver
+  datasource:
+    url: jdbc:postgresql://localhost:5432/events_app
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
 
 #logging:
 #  level:

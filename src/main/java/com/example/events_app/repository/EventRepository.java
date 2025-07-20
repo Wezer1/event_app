@@ -16,4 +16,10 @@ public interface EventRepository extends JpaRepository<Event,Integer>, JpaSpecif
     @EntityGraph(attributePaths = {"images"})
     @Query("SELECT e FROM Event e WHERE e.id = :eventId")
     Optional<Event> findByIdWithImages(@Param("eventId") Integer eventId);
+
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.user.id = :userId")
+    int countByUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.user.id = :userId AND e.conducted = true")
+    int countByUserIdAndConducted(@Param("userId") Integer userId, @Param("conducted") boolean conducted);
 }

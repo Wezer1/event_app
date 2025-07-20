@@ -18,13 +18,19 @@ public class AuthResponseDTO {
 
     private Role role;
 
+    private String phoneNumber;
+
+    private String email;
+
     private String token;
 
-    public AuthResponseDTO(Integer id, String fullName, String login, Role role, String token) {
+    public AuthResponseDTO(Integer id, String fullName, String login, Role role, String token, String email, String phoneNumber) {
         this.id = id;
         this.fullName = fullName;
         this.login = login;
         this.role = role;
         this.token = token;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
     }
 }

@@ -129,8 +129,8 @@ public class EventController {
             description = "Forbidden - missing required permissions"
     )
     @PreAuthorize("hasAuthority('users:read')")
-    public ResponseEntity<Page<EventResponseMediumDTO>> searchEvents(EventFilterDTO filter) {
-        Page<EventResponseMediumDTO> eventPage = eventService.searchEvents(filter);
+    public ResponseEntity<Page<EventResponseMediumWithOutImagesDTO>> searchEvents(EventFilterDTO filter) {
+        Page<EventResponseMediumWithOutImagesDTO> eventPage = eventService.searchEvents(filter);
         return ResponseEntity.ok(eventPage);
     }
 
@@ -196,8 +196,8 @@ public class EventController {
             description = "User not found when userIdForEventFilter is provided"
     )
     @PreAuthorize("hasAuthority('users:read')")
-    public ResponseEntity<Page<EventResponseMediumDTO>> searchEventsWithUser(@ModelAttribute EventFilterForUserDTO filter) {
-        Page<EventResponseMediumDTO> result = eventService.searchEventsWithUser(filter);
+    public ResponseEntity<Page<EventResponseMediumWithOutImagesDTO>> searchEventsWithUser(@ModelAttribute EventFilterForUserDTO filter) {
+        Page<EventResponseMediumWithOutImagesDTO> result = eventService.searchEventsWithUser(filter);
         return ResponseEntity.ok(result);
     }
 

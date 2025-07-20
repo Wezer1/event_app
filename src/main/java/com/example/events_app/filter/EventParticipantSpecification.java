@@ -15,14 +15,19 @@ public class EventParticipantSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-
-
             if (filter.getUserId() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("id").get("userId"), filter.getUserId()));
             }
 
             if (filter.getEventId() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("id").get("eventId"), filter.getEventId()));
+            }
+
+            if (filter.getEventTitle() != null && !filter.getEventTitle().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("event").get("title")),
+                        "%" + filter.getEventTitle().toLowerCase() + "%"
+                ));
             }
 
             if (filter.getStatus() != null) {

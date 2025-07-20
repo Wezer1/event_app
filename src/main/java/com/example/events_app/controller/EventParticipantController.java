@@ -61,6 +61,7 @@ public class EventParticipantController {
             parameters = {
                     @Parameter(name = "userId", description = "ID of the participant user", example = "5"),
                     @Parameter(name = "eventId", description = "ID of the event", example = "100"),
+                    @Parameter(name = "eventTitle", description = "Title of the event (partial match, case insensitive)", example = "Конференция"),
                     @Parameter(name = "status", description = "Registration status of the participant", example = "CONFIRMED"),
                     @Parameter(name = "membershipStatus", description = "Validity status of the participation", example = "VALID"),
                     @Parameter(name = "createdAtFrom", description = "Filter by registration date (from)", example = "2025-01-01T00:00:00"),

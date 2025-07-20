@@ -1,10 +1,7 @@
 package com.example.events_app.service;
 
 
-import com.example.events_app.dto.user.UserDTO;
-import com.example.events_app.dto.user.UserFilterDTO;
-import com.example.events_app.dto.user.UserRegistrationRequestDto;
-import com.example.events_app.dto.user.UserRegistrationResponseDto;
+import com.example.events_app.dto.user.*;
 import com.example.events_app.entity.User;
 import com.example.events_app.exceptions.AlreadyExistsException;
 import com.example.events_app.exceptions.NoSuchException;
@@ -43,17 +40,17 @@ public class UserService {
     @Transactional
     public List<UserRegistrationResponseDto> getAllUsers() {
         log.info("Get all Users");
-        if(userRepository.findAll().isEmpty()){
+        if (userRepository.findAll().isEmpty()) {
             throw new NoSuchException("No users");
         }
-        return userRepository.findAll().stream().map(userRegisterResponseMapper :: toRegistrationResponseDto).collect(Collectors.toList());
+        return userRepository.findAll().stream().map(userRegisterResponseMapper::toRegistrationResponseDto).collect(Collectors.toList());
     }
 
     @Transactional
     public UserRegistrationResponseDto getUserById(Integer userId) {
         log.info("Get user by id: {} ", userId);
         Optional<User> userOptional = Optional.ofNullable(userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchException("There is no user with ID = "+ userId + " in Database")));
+                .orElseThrow(() -> new NoSuchException("There is no user with ID = " + userId + " in Database")));
         return userRegisterResponseMapper.toRegistrationResponseDto(userOptional.get());
     }
 
@@ -66,38 +63,56 @@ public class UserService {
     }
 
     @Transactional
-    public UserRegistrationResponseDto changeUser(Integer userId, UserRegistrationRequestDto userRegistrationRequestDto) {
-        // 1. Проверяем, существует ли пользователь
-        User existingUser = userRepository.findById(userId)
+    public UserRegistrationResponseDto changeUser(Integer userId, UserUpdateRequestDTO updateDto) {
+        // 1. Находим пользователя
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchException("There is no user with ID = " + userId + " in Database"));
 
-        // 2. Проверяем, пытается ли пользователь изменить логин
-        if (!existingUser.getLogin().equals(userRegistrationRequestDto.getLogin())) {
-            // 3. Если логин изменен - проверяем, не занят ли он другим пользователем
-            if (userRepository.findByLogin(userRegistrationRequestDto.getLogin()).isPresent()) {
-                throw new AlreadyExistsException("Login '" + userRegistrationRequestDto.getLogin() + "' is already taken");
+        // 2. Проверка и обновление логина (если передан)
+        if (updateDto.getLogin() != null && !updateDto.getLogin().isEmpty()) {
+            if (!user.getLogin().equals(updateDto.getLogin())) {
+                if (userRepository.findByLogin(updateDto.getLogin()).isPresent()) {
+                    throw new AlreadyExistsException("Login '" + updateDto.getLogin() + "' is already taken");
+                }
+                user.setLogin(updateDto.getLogin());
             }
         }
 
+        // 3. Обновляем остальные поля, если они переданы
+        if (updateDto.getFullName() != null) {
+            user.setFullName(updateDto.getFullName());
+        }
 
-        // 4. Обновляем данные пользователя
-        String encodedPassword = passwordEncoder.encode(userRegistrationRequestDto.getPassword());
 
-        existingUser.setFullName(userRegistrationRequestDto.getFullName());
-        existingUser.setLogin(userRegistrationRequestDto.getLogin());
-        existingUser.setPassword(encodedPassword); // Устанавливаем закодированный пароль
-        existingUser.setEmail(userRegistrationRequestDto.getEmail());
-        existingUser.setPhoneNumber(userRegistrationRequestDto.getPhoneNumber());
+        if (updateDto.getPassword() != null && !updateDto.getPassword().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(updateDto.getPassword());
+            user.setPassword(encodedPassword);
+        }
+
+        if (updateDto.getRole() != null) {
+            user.setRole(updateDto.getRole());
+        }
+
+        if (updateDto.getPhoneNumber() != null) {
+            user.setPhoneNumber(updateDto.getPhoneNumber());
+        }
+
+        if (updateDto.getEmail() != null) {
+            user.setEmail(updateDto.getEmail());
+        }
+
+        // 4. Сохраняем обновленного пользователя
+        User updatedUser = userRepository.save(user);
 
         // 5. Сохраняем и возвращаем результат
-        return userRegisterResponseMapper.toRegistrationResponseDto(userRepository.save(existingUser));
+        return userRegisterResponseMapper.toRegistrationResponseDto(userRepository.save(updatedUser));
     }
 
     @Transactional
     public void deleteUser(Integer userId) {
         log.info("Delete user");
-        if(userRepository.findById(userId).isEmpty()){
-            throw new NoSuchException("There is no user with ID = "+ userId + " in Database");
+        if (userRepository.findById(userId).isEmpty()) {
+            throw new NoSuchException("There is no user with ID = " + userId + " in Database");
         }
         userRepository.deleteById(userId);
     }
