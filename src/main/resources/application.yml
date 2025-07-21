@@ -7,7 +7,7 @@ jwt:
   header: Authorization
   expiration: 86400
 file:
-  upload-dir: uploads
+  upload-dir: src/main/resources/uploads
   preview:
     max-width: 512
     quality: 0.85

@@ -115,7 +115,15 @@ public class FileStorageService {
 
     public String storeAdditionalImage(MultipartFile file) {
         try {
-            return storeOriginalFile(file);
+            String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            String newFilename = UUID.randomUUID() + extension;
+
+            // Сохраняем напрямую в папку для дополнительных изображений (images)
+            Files.copy(file.getInputStream(), additionalImagesLocation.resolve(newFilename),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            return newFilename;
         } catch (IOException e) {
             throw new RuntimeException("Failed to store additional image", e);
         }
