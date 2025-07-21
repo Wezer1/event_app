@@ -42,14 +42,19 @@ public class FileStorageService {
     }
 
     @Autowired
-    public FileStorageService(@Value("${file.upload-dir}") String uploadDir) throws IOException {
-        this.uploadRootDir = Paths.get(uploadDir).toAbsolutePath().normalize();
-        this.originalsLocation = Paths.get(uploadDir, "originals").toAbsolutePath().normalize();
-        this.previewsLocation = Paths.get(uploadDir, "previews").toAbsolutePath().normalize();
-        this.additionalImagesLocation = Paths.get(uploadDir, "images").toAbsolutePath().normalize();
+    public FileStorageService(@Value("${spring.web.resources.static-locations[0]}") String uploadBaseDir)
+            throws IOException {
+        // Удаляем префикс "file:" если есть
+        String cleanPath = uploadBaseDir.replace("file:", "");
+        this.uploadRootDir = Paths.get(cleanPath).toAbsolutePath().normalize();
+
+        this.originalsLocation = uploadRootDir.resolve("originals");
+        this.previewsLocation = uploadRootDir.resolve("previews");
+        this.additionalImagesLocation = uploadRootDir.resolve("images");
 
         createDirectories();
     }
+
 
     private void createDirectories() throws IOException {
         Files.createDirectories(originalsLocation);
