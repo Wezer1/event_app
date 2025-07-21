@@ -18,10 +18,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.UUID;
@@ -31,6 +28,8 @@ public class FileStorageService {
     private final Path originalsLocation;
     private final Path previewsLocation;
     private final Path additionalImagesLocation;
+    private final Path uploadRootDir;  // Добавьте это поле
+
 
     @Value("${file.preview.max-width:512}")
     private int previewMaxWidth;
@@ -38,8 +37,13 @@ public class FileStorageService {
     @Value("${file.preview.quality:0.85}")
     private float previewQuality;
 
+    public Path getUploadRootDir() {
+        return uploadRootDir;
+    }
+
     @Autowired
     public FileStorageService(@Value("${file.upload-dir}") String uploadDir) throws IOException {
+        this.uploadRootDir = Paths.get(uploadDir).toAbsolutePath().normalize();
         this.originalsLocation = Paths.get(uploadDir, "originals").toAbsolutePath().normalize();
         this.previewsLocation = Paths.get(uploadDir, "previews").toAbsolutePath().normalize();
         this.additionalImagesLocation = Paths.get(uploadDir, "images").toAbsolutePath().normalize();
@@ -87,27 +91,48 @@ public class FileStorageService {
         return baseName + ".jpg";
     }
 
+    private String getOriginalExtension(String filename) {
+        return filename.substring(filename.lastIndexOf("."));
+    }
+
     public void deleteFile(String filePath) {
         try {
-            Path path = Paths.get(filePath).toAbsolutePath().normalize();
-            String filename = path.getFileName().toString();
-
-            // Удаляем сам файл
-            Files.deleteIfExists(path);
-
-            // Определяем тип файла по пути и удаляем связанные файлы
+            // Определяем тип файла по пути
             if (filePath.contains("/previews/")) {
-                // Если удаляем превью - удаляем и оригинал
-                String originalFilename = filename.substring(0, filename.lastIndexOf('.'));
-                Path originalPath = originalsLocation.resolve(originalFilename);
-                Files.deleteIfExists(originalPath);
-            } else if (filePath.contains("/originals/")) {
-                // Если удаляем оригинал - удаляем и превью
-                String previewFilename = filename + ".jpg";
+                // Удаляем превью и оригинал
+                String previewFilename = Paths.get(filePath).getFileName().toString();
+                String originalFilename = previewFilename.replace(".jpg", "");
+
+                // Удаляем превью
                 Path previewPath = previewsLocation.resolve(previewFilename);
                 Files.deleteIfExists(previewPath);
+
+                // Удаляем оригинал (ищем с оригинальным расширением)
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(originalsLocation,
+                        originalFilename + ".*")) {
+                    for (Path originalPath : stream) {
+                        Files.deleteIfExists(originalPath);
+                    }
+                }
+
+            } else if (filePath.contains("/originals/")) {
+                // Удаляем оригинал и превью
+                String originalFilename = Paths.get(filePath).getFileName().toString();
+                String previewFilename = originalFilename.substring(0, originalFilename.lastIndexOf('.')) + ".jpg";
+
+                // Удаляем оригинал
+                Path originalPath = originalsLocation.resolve(originalFilename);
+                Files.deleteIfExists(originalPath);
+
+                // Удаляем превью
+                Path previewPath = previewsLocation.resolve(previewFilename);
+                Files.deleteIfExists(previewPath);
+
+            } else if (filePath.contains("/images/")) {
+                // Удаляем только дополнительное изображение
+                Path imagePath = additionalImagesLocation.resolve(Paths.get(filePath).getFileName());
+                Files.deleteIfExists(imagePath);
             }
-            // Для additional images просто удаляем файл, так как у них нет превью
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete file: " + filePath, e);
         }

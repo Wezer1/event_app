@@ -27,14 +27,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -171,13 +169,12 @@ public class EventService {
     }
 
     private void handlePreviewUpdate(Event event, MultipartFile newPreview) {
-        // Удаляем старое превью и оригинал, если они существуют
+        // Удаляем старое превью и оригинал
         if (event.getPreview() != null) {
             try {
-                fileStorageService.deleteFile(event.getPreview()); // Удалит и превью, и оригинал
+                fileStorageService.deleteFile(event.getPreview());
             } catch (RuntimeException e) {
-                log.error("Failed to delete old preview: {}", e.getMessage());
-                // Не бросаем исключение, чтобы не прерывать обновление
+                log.error("Failed to delete old preview files: {}", e.getMessage());
             }
         }
 
@@ -189,36 +186,44 @@ public class EventService {
     private void handleImagesUpdate(Event event,
                                     List<EventImageShortDTO> currentImagesDTO,
                                     List<MultipartFile> newImages) {
+        List<EventImage> existingImages = new ArrayList<>(event.getImages());
 
-        List<EventImage> existingImages = eventImageRepository.findByEvent_Id(event.getId());
+        Set<String> currentImagePaths = currentImagesDTO.stream()
+                .map(EventImageShortDTO::getFilePath)
+                .collect(Collectors.toSet());
 
-        // Удаляем изображения, которых нет в currentImagesDTO
+        // Удаляем изображения, которых нет в currentImagePaths
         existingImages.stream()
-                .filter(existingImage -> currentImagesDTO.stream()
-                        .noneMatch(dto -> dto.getFilePath().equals(existingImage.getFilePath())))
+                .filter(image -> !currentImagePaths.contains(image.getFilePath()))
                 .forEach(image -> {
                     try {
-                        Files.deleteIfExists(Paths.get(image.getFilePath()));
+                        // Удаляем файл через FileStorageService
+                        fileStorageService.deleteFile(image.getFilePath());
+
+                        // Удаляем из коллекции и БД
+                        event.getImages().remove(image);
                         eventImageRepository.delete(image);
-                    } catch (IOException e) {
-                        log.error("Failed to delete image file: {}", e.getMessage());
-                        throw new RuntimeException("Failed to delete image file", e);
+                    } catch (RuntimeException e) {
+                        log.error("Failed to delete image: {}", image.getFilePath(), e);
                     }
                 });
 
         // Добавляем новые изображения
-        if (newImages != null && !newImages.isEmpty()) {
+        if (newImages != null) {
             for (MultipartFile file : newImages) {
                 if (file != null && !file.isEmpty()) {
                     String fileName = fileStorageService.storeAdditionalImage(file);
                     EventImage newImage = new EventImage();
                     newImage.setEvent(event);
                     newImage.setFilePath("uploads/images/" + fileName);
+                    event.getImages().add(newImage);
                     eventImageRepository.save(newImage);
                 }
             }
         }
     }
+
+
 
     private void updateBasicEventFields(Event event, EventRequestToUpdateDTO dto) {
         if (dto.getTitle() != null) {
@@ -251,14 +256,29 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NoSuchException("There is no event with ID = " + eventId + " in Database"));
 
-        // 1. Удаляем превью (если есть)
+        // 1. Удаляем превью и оригинал (если есть)
         if (event.getPreview() != null) {
             try {
+                // Удаляем превью
                 Path previewPath = Paths.get(event.getPreview());
                 Files.deleteIfExists(previewPath);
+
+                // Получаем имя оригинального файла (убираем .jpg и путь)
+                String previewFilename = previewPath.getFileName().toString();
+                String originalFilename = previewFilename.substring(0, previewFilename.lastIndexOf('.'));
+
+                // Ищем оригинал в папке originals (с любым расширением)
+                Path originalsDir = Paths.get(fileStorageService.getUploadRootDir().toString(), "originals");
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(originalsDir,
+                        originalFilename + ".*")) {
+                    for (Path originalPath : stream) {
+                        Files.deleteIfExists(originalPath);
+                        log.debug("Deleted original file: {}", originalPath);
+                    }
+                }
             } catch (IOException e) {
-                log.error("Failed to delete preview file: {}", event.getPreview(), e);
-                throw new RuntimeException("Failed to delete preview file", e);
+                log.error("Failed to delete preview files: {}", event.getPreview(), e);
+                throw new RuntimeException("Failed to delete preview files", e);
             }
         }
 
@@ -278,7 +298,7 @@ public class EventService {
             }
         }
 
-        // 3. Удаляем само событие (каскадно удалит связанные сущности, если настроено)
+        // 3. Удаляем само событие
         eventRepository.delete(event);
     }
 
