@@ -4,17 +4,17 @@ import com.example.events_app.dto.event.*;
 import com.example.events_app.dto.event_pictures.EventImageDTO;
 import com.example.events_app.dto.event_pictures.EventImageShortDTO;
 import com.example.events_app.dto.organizer.OrganizerStatsDTO;
-import com.example.events_app.entity.Event;
-import com.example.events_app.entity.EventImage;
-import com.example.events_app.entity.EventType;
-import com.example.events_app.entity.User;
+import com.example.events_app.entity.*;
 import com.example.events_app.exceptions.NoSuchException;
 import com.example.events_app.filter.EventSpecification;
 import com.example.events_app.filter.EventWithUserSpecification;
 import com.example.events_app.mapper.event.*;
+import com.example.events_app.model.EventParticipantStatus;
 import com.example.events_app.model.MembershipStatus;
 import com.example.events_app.model.SortDirection;
 import com.example.events_app.repository.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,11 +46,13 @@ public class EventService {
     private final EventResponseShortMapper eventResponseShortMapper;
     private final EventRequestMapper eventRequestMapper;
     private final UserRepository userRepository;
-    private final EventTypeMapper eventTypeMapper;
     private final EventParticipantRepository eventParticipantRepository;
     private final FileStorageService fileStorageService;
     private final EventImageRepository eventImageRepository;
     private final EventResponseMediumWithOutImagesMapper eventResponseMediumWithOutImagesMapper;
+    private final EventParticipantRepository participantRepository;
+    private final UserBonusHistoryRepository bonusHistoryRepository;
+    private final BonusTypeRepository bonusTypeRepository;
 
     @Transactional
     public List<EventResponseMediumDTO> getAllEvents() {
@@ -224,7 +227,6 @@ public class EventService {
     }
 
 
-
     private void updateBasicEventFields(Event event, EventRequestToUpdateDTO dto) {
         if (dto.getTitle() != null) {
             event.setTitle(dto.getTitle());
@@ -357,4 +359,89 @@ public class EventService {
             return dto;
         });
     }
+
+    @Transactional
+    public BonusAwardResponse awardBonusesToEventParticipants(Integer eventId) {
+        String bonusName = "Бонус за участие";
+
+        // 1. Получаем тип бонуса
+        BonusType bonusType = bonusTypeRepository.findByName(bonusName)
+                .orElseThrow(() -> new IllegalArgumentException("Bonus type not found: " + bonusName));
+
+        // 2. Получаем и валидируем событие
+        Event event = validateEvent(eventId);
+
+        // 3. Получаем валидных участников
+        List<EventParticipant> validParticipants = getValidParticipants(eventId);
+
+        // 4. Если нет участников - возвращаем соответствующий результат
+        if (validParticipants.isEmpty()) {
+            log.info("No valid participants found for event {}", eventId);
+            return new BonusAwardResponse(
+                    0,
+                    0,
+                    "No valid participants found for event"
+            );
+        }
+
+        // 5. Начисляем бонусы
+        int awardedCount = awardBonusesToParticipants(validParticipants, event, bonusType);
+
+        return new BonusAwardResponse(
+                awardedCount,
+                awardedCount * 1000, // Используем amount из bonusType
+                "Bonuses awarded successfully"
+        );
+    }
+
+    private Event validateEvent(Integer eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event not found with id: " + eventId));
+
+        if (LocalDateTime.now().isBefore(event.getEndTime())) {
+            throw new IllegalStateException("Cannot award bonuses before event ends");
+        }
+
+        return event;
+    }
+
+    private List<EventParticipant> getValidParticipants(Integer eventId) {
+        return participantRepository.findByEventIdAndMembershipStatus(
+                eventId,
+                MembershipStatus.VALID
+        );
+    }
+
+    private int awardBonusesToParticipants(List<EventParticipant> participants, Event event, BonusType bonusType) {
+        participants.forEach(participant -> {
+            createBonusHistory(participant.getUser(), event, bonusType);
+            updateUserBalance(participant.getUser(), 1000);
+        });
+
+        return participants.size();
+    }
+
+    private void createBonusHistory(User user, Event event, BonusType bonusType) {
+        UserBonusHistory bonus = new UserBonusHistory();
+        bonus.setUser(user);
+        bonus.setBonusType(bonusType);
+        bonus.setAmount(1000); // Используем сумму из типа бонуса
+        bonus.setReason("Участие в мероприятии: " + event.getTitle());
+        bonus.setCreatedAt(LocalDateTime.now());
+        bonus.setActive(true);
+
+        bonusHistoryRepository.save(bonus);
+    }
+
+    private void updateUserBalance(User user, int amount) {
+        user.setTotalBonusPoints(user.getTotalBonusPoints() + amount);
+        userRepository.save(user);
+    }
+
+    // DTO для ответа
+    public record BonusAwardResponse(
+            int participantsCount,
+            int totalBonuses,
+            String message
+    ) {}
 }

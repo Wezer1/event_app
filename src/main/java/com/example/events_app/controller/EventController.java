@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.media.*;
@@ -307,5 +309,27 @@ public class EventController {
     public ResponseEntity<Void> updateConducted(@PathVariable Integer id, Boolean conducted) {
         eventService.updateConductedStatus(id, conducted);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{eventId}/award-bonuses")
+    @Operation(summary = "начислить бонусы", description = "Начисляет бонусы за мероприятие")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<EventService.BonusAwardResponse> awardBonuses(
+            @PathVariable Integer eventId) {
+
+        EventService.BonusAwardResponse response =
+                eventService.awardBonusesToEventParticipants(eventId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleNotFound(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleBadRequest(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }

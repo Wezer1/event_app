@@ -3,6 +3,7 @@ package com.example.events_app.repository;
 import com.example.events_app.entity.Event;
 import com.example.events_app.entity.EventParticipant;
 import com.example.events_app.entity.EventParticipantId;
+import com.example.events_app.model.EventParticipantStatus;
 import com.example.events_app.model.MembershipStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -31,5 +32,7 @@ public interface EventParticipantRepository extends JpaRepository<EventParticipa
     List<EventParticipant> findById_UserId(Integer userId);
     List<EventParticipant> findById_EventId(Integer userId);
 
-    Integer countEventParticipantByUserId (Integer userId);
+    List<EventParticipant> findByEventIdAndMembershipStatus(
+            Integer eventId,
+            MembershipStatus membershipStatus);
 }
