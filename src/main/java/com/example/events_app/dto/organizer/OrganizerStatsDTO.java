@@ -12,4 +12,7 @@ public class OrganizerStatsDTO {
     private int conductedEvents;
     private int totalParticipants;
     private List<String> eventTypes;
+    private long activeEvents;
+    private long upcomingEvents;
+    private long completedEvents;
 }

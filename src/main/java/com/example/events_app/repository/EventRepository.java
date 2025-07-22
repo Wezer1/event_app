@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event,Integer>, JpaSpecificationExecutor<Event> {
@@ -22,4 +23,14 @@ public interface EventRepository extends JpaRepository<Event,Integer>, JpaSpecif
 
     @Query("SELECT COUNT(e) FROM Event e WHERE e.user.id = :userId AND e.conducted = true")
     int countByUserIdAndConducted(@Param("userId") Integer userId, @Param("conducted") boolean conducted);
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.startTime <= :currentTime AND e.endTime >= :currentTime")
+    long countActiveEvents(@Param("currentTime") LocalDateTime currentTime);
+
+    // Количество предстоящих событий (start_time в будущем)
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.startTime > :currentTime")
+    long countUpcomingEvents(@Param("currentTime") LocalDateTime currentTime);
+
+    // Количество завершенных событий (end_time в прошлом ИЛИ conducted = true)
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.endTime < :currentTime OR e.conducted = true")
+    long countCompletedEvents(@Param("currentTime") LocalDateTime currentTime);
 }

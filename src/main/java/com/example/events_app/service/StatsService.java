@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -30,7 +31,10 @@ public class StatsService {
 
         // Типы мероприятий организатора
         List<String> eventTypes = eventTypeRepository.findEventTypeNamesByOrganizer(organizerId);
-
-        return new OrganizerStatsDTO(totalEvents, conductedEvents, totalParticipants, eventTypes);
+        LocalDateTime now = LocalDateTime.now();
+        long activeEvents = eventRepository.countActiveEvents(now);
+        long upcomingEvents = eventRepository.countUpcomingEvents(now);
+        long completedEvents = eventRepository.countCompletedEvents(now);
+        return new OrganizerStatsDTO(totalEvents, conductedEvents, totalParticipants, eventTypes, activeEvents,  upcomingEvents,  completedEvents);
     }
 }
