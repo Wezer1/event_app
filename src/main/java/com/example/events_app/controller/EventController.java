@@ -312,22 +312,13 @@ public class EventController {
     @Operation(summary = "Обновить статус 'проведено'", description = "Обновляет поле 'conducted'")
     @ApiResponse(responseCode = "200", description = "OK")
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<Void> updateConducted(@PathVariable Integer id, Boolean conducted) {
+    public ResponseEntity<EventService.BonusAwardResponse> updateConducted(@PathVariable Integer id, Boolean conducted) {
         eventService.updateConductedStatus(id, conducted);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{eventId}/award-bonuses")
-    @Operation(summary = "начислить бонусы", description = "Начисляет бонусы за мероприятие")
-    @ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<EventService.BonusAwardResponse> awardBonuses(
-            @PathVariable Integer eventId) {
-
         EventService.BonusAwardResponse response =
-                eventService.awardBonusesToEventParticipants(eventId);
-
+                eventService.awardBonusesToEventParticipants(id);
         return ResponseEntity.ok(response);
     }
+
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleNotFound(IllegalArgumentException ex) {

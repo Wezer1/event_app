@@ -212,7 +212,7 @@ public class TestDataLoader implements CommandLineRunner {
                     history.setUser(user);
                     history.setBonusType(allBonusTypes.get(i % allBonusTypes.size()));
                     history.setAmount((i + 1) * 10);
-                    history.setReason("Тестовый бонус");
+                    history.setReason("Бонус за участие");
                     history.setCreatedAt(now.minusDays(i));
                     history.setActive(true);
 
@@ -477,7 +477,11 @@ public class TestDataLoader implements CommandLineRunner {
                 event.setLocation(locations[(int) (Math.random() * locations.length)]);
                 event.setCreatedAt(now);
                 event.setUpdatedAt(now);
-                event.setConducted(false);
+                if (i % 2 == 0){
+                    event.setConducted(false);
+                }else{
+                    event.setConducted(true);
+                }
                 event.setEventType(type);
 
                 // Устанавливаем пользователя только из числа организаций
