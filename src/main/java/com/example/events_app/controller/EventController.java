@@ -312,10 +312,11 @@ public class EventController {
     @Operation(summary = "Обновить статус 'проведено'", description = "Обновляет поле 'conducted'")
     @ApiResponse(responseCode = "200", description = "OK")
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<EventService.BonusAwardResponse> updateConducted(@PathVariable Integer id, Boolean conducted) {
-        eventService.updateConductedStatus(id, conducted);
+    public ResponseEntity<EventService.BonusAwardResponse> updateConducted(@PathVariable Integer id) {
+
         EventService.BonusAwardResponse response =
                 eventService.awardBonusesToEventParticipants(id);
+        eventService.updateConductedStatus(id, true);
         return ResponseEntity.ok(response);
     }
 
