@@ -39,15 +39,18 @@ public class EventSpecification {
                 );
             }
 
-            // Диапазон дат
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime defaultStart = now.minusYears(100);
             LocalDateTime defaultEnd = now.plusYears(100);
 
-            LocalDateTime from = filter.getStartDateFrom() != null ? filter.getStartDateFrom() : defaultStart;
-            LocalDateTime to = filter.getStartDateTo() != null ? filter.getStartDateTo() : defaultEnd;
+            LocalDateTime startFrom = filter.getStartDateFrom() != null ? filter.getStartDateFrom() : defaultStart;
+            LocalDateTime startTo = filter.getStartDateTo() != null ? filter.getStartDateTo() : defaultEnd;
+            predicates.add(criteriaBuilder.between(root.get("startTime"), startFrom, startTo));
 
-            predicates.add(criteriaBuilder.between(root.get("startTime"), from, to));
+            // Новый фильтр по дате окончания
+            LocalDateTime endFrom = filter.getEndDateFrom() != null ? filter.getEndDateFrom() : defaultStart;
+            LocalDateTime endTo = filter.getEndDateTo() != null ? filter.getEndDateTo() : defaultEnd;
+            predicates.add(criteriaBuilder.between(root.get("endTime"), endFrom, endTo));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

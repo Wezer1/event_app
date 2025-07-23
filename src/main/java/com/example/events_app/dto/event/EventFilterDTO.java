@@ -40,5 +40,11 @@ public class EventFilterDTO {
     private int size = 50;
 
     private Integer userId;
+
+    @Schema(description = "Дата окончания события (от)")
+    private LocalDateTime endDateFrom;
+
+    @Schema(description = "Дата окончания события (до)")
+    private LocalDateTime endDateTo;
     // Геттеры и сеттеры
 }
