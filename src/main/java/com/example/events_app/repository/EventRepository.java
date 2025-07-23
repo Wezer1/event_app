@@ -20,14 +20,23 @@ public interface EventRepository extends JpaRepository<Event,Integer>, JpaSpecif
 
     @Query("SELECT COUNT(e) FROM Event e WHERE e.user.id = :userId AND e.conducted = true")
     int countByUserIdAndConducted(@Param("userId") Integer userId, @Param("conducted") boolean conducted);
-    @Query("SELECT COUNT(e) FROM Event e WHERE e.startTime <= :currentTime AND e.endTime >= :currentTime")
-    long countActiveEvents(@Param("currentTime") LocalDateTime currentTime);
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.startTime <= :currentTime " +
+            "AND e.endTime >= :currentTime AND e.user.id = :userId")
+    long countActiveEventsByUser(
+            @Param("currentTime") LocalDateTime currentTime,
+            @Param("userId") Integer userId
+    );
 
     // Количество предстоящих событий (start_time в будущем)
-    @Query("SELECT COUNT(e) FROM Event e WHERE e.startTime > :currentTime")
-    long countUpcomingEvents(@Param("currentTime") LocalDateTime currentTime);
-
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.startTime > :currentTime AND e.user.id = :userId")
+    long countUpcomingEvents(
+            @Param("currentTime") LocalDateTime currentTime,
+            @Param("userId") Integer userId
+    );
     // Количество завершенных событий (end_time в прошлом ИЛИ conducted = true)
-    @Query("SELECT COUNT(e) FROM Event e WHERE e.endTime < :currentTime OR e.conducted = true")
-    long countCompletedEvents(@Param("currentTime") LocalDateTime currentTime);
+    @Query("SELECT COUNT(e) FROM Event e WHERE (e.endTime < :currentTime OR e.conducted = true) AND e.user.id = :userId")
+    long countCompletedEvents(
+            @Param("currentTime") LocalDateTime currentTime,
+            @Param("userId") Integer userId
+    );
 }

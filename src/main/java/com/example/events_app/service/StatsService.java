@@ -5,13 +5,19 @@ import com.example.events_app.repository.EventParticipantRepository;
 import com.example.events_app.repository.EventRepository;
 import com.example.events_app.repository.EventTypeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.logging.Log;
+import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static java.lang.Math.log;
+
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class StatsService {
     private final EventRepository eventRepository;
@@ -32,9 +38,10 @@ public class StatsService {
         // Типы мероприятий организатора
         List<String> eventTypes = eventTypeRepository.findEventTypeNamesByOrganizer(organizerId);
         LocalDateTime now = LocalDateTime.now();
-        long activeEvents = eventRepository.countActiveEvents(now);
-        long upcomingEvents = eventRepository.countUpcomingEvents(now);
-        long completedEvents = eventRepository.countCompletedEvents(now);
-        return new OrganizerStatsDTO(totalEvents, conductedEvents, totalParticipants, eventTypes, activeEvents,  upcomingEvents,  completedEvents);
+        System.out.println(now);
+        long activeEvents = eventRepository.countActiveEventsByUser(now, organizerId);
+        long upcomingEvents = eventRepository.countUpcomingEvents(now, organizerId);
+        long completedEvents = eventRepository.countCompletedEvents(now, organizerId);
+        return new OrganizerStatsDTO(totalEvents, conductedEvents, totalParticipants, eventTypes, activeEvents, upcomingEvents, completedEvents);
     }
 }
