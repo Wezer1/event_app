@@ -310,15 +310,84 @@ public class EventController {
     }
 
     @PostMapping("/{id}/conduct")
-    @Operation(summary = "Обновить статус 'проведено'", description = "Обновляет поле 'conducted'")
-    @ApiResponse(responseCode = "200", description = "OK")
+    @Operation(
+            summary = "Обновление статуса проведения мероприятия",
+            description = """
+        ### Изменяет статус проведения мероприятия и управляет бонусами участников:
+        - **При установке conducted=true**: Начисляет бонусы всем валидным участникам
+        - **При установке conducted=false**: Отменяет ранее начисленные бонусы
+        - **Если статус не изменился**: Возвращает сообщение без изменений
+        
+        ### Пример запроса:
+        ```
+        POST /api/events/25004/conduct?conducted=false
+        ```
+        """,
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Успешное выполнение операции",
+                            content = {
+                                    @Content(
+                                            mediaType = "application/json",
+                                            examples = {
+                                                    @ExampleObject(
+                                                            name = "При отмене бонусов",
+                                                            value = """
+                                {
+                                  "revokedCount": 3,
+                                  "totalAmountRevoked": 3000,
+                                  "message": "Bonuses revoked successfully"
+                                }
+                                """
+                                                    ),
+                                                    @ExampleObject(
+                                                            name = "Без изменений",
+                                                            value = """
+                                {
+                                  "message": "Status not changed"
+                                }
+                                """
+                                                    )
+                                            }
+                                    )
+                            }
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Неверный формат ID или параметра conducted"
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Требуются права users:write"
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Мероприятие с указанным ID не найдено"
+                    )
+            }
+    )
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<?> updateConducted(@PathVariable Integer id,
-                                                                           @RequestParam boolean conducted) {
+    public ResponseEntity<?> updateConducted(
+            @Parameter(
+                    description = "ID мероприятия",
+                    required = true,
+                    example = "25004"
+            )
+            @PathVariable Integer id,
+
+            @Parameter(
+                    description = "Новый статус проведения (true/false)",
+                    required = true,
+                    example = "false"
+            )
+            @RequestParam boolean conducted) {
+
         EventService.BonusResponse response = eventService.updateConductedStatus(id, conducted);
 
         if (response == null) {
-            return ResponseEntity.ok().body(Collections.singletonMap("message", "Status not changed"));
+            return ResponseEntity.ok()
+                    .body(Collections.singletonMap("message", "Status not changed"));
         }
 
         return ResponseEntity.ok(response);
