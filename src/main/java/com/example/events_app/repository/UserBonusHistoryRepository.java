@@ -10,6 +10,6 @@ import java.util.List;
 public interface UserBonusHistoryRepository extends JpaRepository<UserBonusHistory, Integer>,
         JpaSpecificationExecutor<UserBonusHistory> {
     List<UserBonusHistory> findByUserId(Integer userId);
-    List<UserBonusHistory> findByUserIdAndBonusTypeIdAndIsActive(Integer userId, Integer bonusTypeId, boolean isActive);
+    List<UserBonusHistory> findByUserIdAndBonusTypeIdAndIsActiveAndEventId(Integer userId, Integer bonusTypeId, boolean isActive,Integer eventId);
 //    List<UserBonusHistory> findByUserIdAndBonusTypeAndActive(Integer userId, Integer bonusId, Boolean active);
 }

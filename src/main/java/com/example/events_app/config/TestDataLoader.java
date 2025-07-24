@@ -196,33 +196,6 @@ public class TestDataLoader implements CommandLineRunner {
 
         }
 
-        // 4. UserBonusHistory
-        if (userBonusHistoryRepository.count() == 0) {
-            List<UserBonusHistory> histories = new ArrayList<>();
-            List<BonusType> allBonusTypes = bonusTypeRepository.findAll();
-
-            // Получаем только пользователей с ролью USER
-            List<User> usersWithUserRole = userRepository.findByRole(Role.USER)
-                    .stream()
-                    .collect(Collectors.toList());
-
-            for (User user : usersWithUserRole) {
-                for (int i = 0; i < 2; i++) {
-                    UserBonusHistory history = new UserBonusHistory();
-                    history.setUser(user);
-                    history.setBonusType(allBonusTypes.get(i % allBonusTypes.size()));
-                    history.setAmount((i + 1) * 10);
-                    history.setReason("Бонус за участие");
-                    history.setCreatedAt(now.minusDays(i));
-                    history.setActive(true);
-
-                    histories.add(history);
-                }
-            }
-
-            userBonusHistoryRepository.saveAll(histories);
-            logger.info("Добавлено {} записей истории бонусов для пользователей с ролью USER.", histories.size());
-        }
 
         // 5. Event
         if (eventRepository.count() == 0) {
@@ -565,6 +538,45 @@ public class TestDataLoader implements CommandLineRunner {
             }
             eventParticipantRepository.saveAll(participants);
             logger.info("Добавлено {} записи на мероприятие пользователя в базу данных.", participants.size());
+        }
+// 4. UserBonusHistory
+        if (userBonusHistoryRepository.count() == 0) {
+            List<UserBonusHistory> histories = new ArrayList<>();
+            List<BonusType> allBonusTypes = bonusTypeRepository.findAll();
+
+            // Получаем только проведенные события (isConducted = true)
+            List<Event> conductedEvents = eventRepository.findByConductedTrue();
+
+            // Получаем только пользователей с ролью USER
+            List<User> usersWithUserRole = userRepository.findByRole(Role.USER)
+                    .stream()
+                    .collect(Collectors.toList());
+
+            // Проверяем, что есть проведенные события
+            if (!conductedEvents.isEmpty()) {
+                for (User user : usersWithUserRole) {
+                    for (int i = 0; i < 2; i++) {
+                        UserBonusHistory history = new UserBonusHistory();
+                        history.setUser(user);
+                        history.setBonusType(allBonusTypes.get(i % allBonusTypes.size()));
+                        history.setAmount((i + 1) * 10);
+                        history.setReason("Бонус за участие");
+                        history.setCreatedAt(now.minusDays(i));
+                        history.setActive(true);
+
+                        // Связываем с проведенным событием (циклически)
+                        Event conductedEvent = conductedEvents.get(i % conductedEvents.size());
+                        history.setEvent(conductedEvent);
+
+                        histories.add(history);
+                    }
+                }
+
+                userBonusHistoryRepository.saveAll(histories);
+                logger.info("Добавлено {} записей истории бонусов для пользователей с ролью USER.", histories.size());
+            } else {
+                logger.warn("Не найдено проведенных событий (isConducted=true). Бонусы не были начислены.");
+            }
         }
 
     }

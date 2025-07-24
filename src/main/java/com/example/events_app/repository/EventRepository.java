@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event,Integer>, JpaSpecificationExecutor<Event> {
+
+    List<Event> findByConductedTrue();
     @Query("SELECT COUNT(e) FROM Event e WHERE e.eventType.id = :id")
     Integer countByEventTypeId(@Param("id") Integer id);
 

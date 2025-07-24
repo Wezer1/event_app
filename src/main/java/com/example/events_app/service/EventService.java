@@ -451,7 +451,7 @@ public class EventService {
         bonus.setReason("Участие в мероприятии: " + event.getTitle());
         bonus.setCreatedAt(LocalDateTime.now());
         bonus.setActive(true);
-
+        bonus.setEvent(event);
         bonusHistoryRepository.save(bonus);
     }
 
@@ -484,7 +484,7 @@ public class EventService {
         }
 
         // 5. Отменяем бонусы
-        int revokedCount = revokeBonusesForParticipants(validParticipants, bonusType);
+        int revokedCount = revokeBonusesForParticipants(validParticipants, bonusType, eventId);
 
         return new BonusResponse(
                 revokedCount,
@@ -498,7 +498,7 @@ public class EventService {
                 .orElseThrow(() -> new IllegalArgumentException("Event not found with id: " + eventId));
     }
 
-    private int revokeBonusesForParticipants(List<EventParticipant> participants, BonusType bonusType) {
+    private int revokeBonusesForParticipants(List<EventParticipant> participants, BonusType bonusType, Integer eventId) {
 
         int revokedCount = 0;
 
@@ -506,10 +506,11 @@ public class EventService {
             User user = participant.getUser();
 
             // 1. Находим активные бонусы пользователя для этого события
-            List<UserBonusHistory> activeBonuses = bonusHistoryRepository.findByUserIdAndBonusTypeIdAndIsActive(
+            List<UserBonusHistory> activeBonuses = bonusHistoryRepository.findByUserIdAndBonusTypeIdAndIsActiveAndEventId(
                     user.getId(),
                     bonusType.getId(),
-                    true);
+                    true,
+                    eventId);
 
             // 2. Если есть активные бонусы - отменяем их
             if (!activeBonuses.isEmpty()) {

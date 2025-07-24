@@ -37,4 +37,8 @@ public class UserBonusHistory {
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
+
+    @ManyToOne
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
 }
