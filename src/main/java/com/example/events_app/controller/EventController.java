@@ -313,10 +313,10 @@ public class EventController {
     @ApiResponse(responseCode = "200", description = "OK")
     @PreAuthorize("hasAuthority('users:write')")
     public ResponseEntity<EventService.BonusAwardResponse> updateConducted(@PathVariable Integer id) {
+        eventService.updateConductedStatus(id, true);
 
         EventService.BonusAwardResponse response =
                 eventService.awardBonusesToEventParticipants(id);
-        eventService.updateConductedStatus(id, true);
         return ResponseEntity.ok(response);
     }
 

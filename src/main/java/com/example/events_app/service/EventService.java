@@ -398,7 +398,7 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("Event not found with id: " + eventId));
 
-        if (LocalDateTime.now().isBefore(event.getEndTime())) {
+        if (!event.isConducted()) {
             throw new IllegalStateException("Cannot award bonuses before event ends");
         }
 
