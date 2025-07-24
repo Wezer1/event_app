@@ -304,12 +304,35 @@ public class EventService {
         eventRepository.delete(event);
     }
 
-    public void updateConductedStatus(Integer eventId, boolean conducted) {
+    public BonusResponse updateConductedStatus(Integer eventId, boolean conducted) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NoSuchException("Event not found"));
 
+        // Если статус не изменился
+        if (event.isConducted() == conducted) {
+            return null;
+        }
+
         event.setConducted(conducted);
         eventRepository.save(event);
+
+        if (conducted) {
+            // Начисляем бонусы при установке conducted=true
+            BonusResponse awardResponse = awardBonusesToEventParticipants(eventId);
+            return new BonusResponse(
+                    awardResponse.participantsCount,
+                    awardResponse.totalBonuses,
+                    "Bonuses awarded"
+            );
+        } else {
+            // Отменяем бонусы при установке conducted=false
+            BonusResponse revokeResponse = revokeBonusesFromEventParticipants(eventId);
+            return new BonusResponse(
+                    revokeResponse.participantsCount,
+                    revokeResponse.totalBonuses,
+                    "Bonuses revoked"
+            );
+        }
     }
 
     public Page<EventResponseMediumWithOutImagesDTO> searchEvents(EventFilterDTO filter) {
@@ -360,8 +383,7 @@ public class EventService {
         });
     }
 
-    @Transactional
-    public BonusAwardResponse awardBonusesToEventParticipants(Integer eventId) {
+    public BonusResponse awardBonusesToEventParticipants(Integer eventId) {
         String bonusName = "Бонус за участие";
 
         // 1. Получаем тип бонуса
@@ -377,7 +399,7 @@ public class EventService {
         // 4. Если нет участников - возвращаем соответствующий результат
         if (validParticipants.isEmpty()) {
             log.info("No valid participants found for event {}", eventId);
-            return new BonusAwardResponse(
+            return new BonusResponse(
                     0,
                     0,
                     "No valid participants found for event"
@@ -387,7 +409,7 @@ public class EventService {
         // 5. Начисляем бонусы
         int awardedCount = awardBonusesToParticipants(validParticipants, event, bonusType);
 
-        return new BonusAwardResponse(
+        return new BonusResponse(
                 awardedCount,
                 awardedCount * 1000, // Используем amount из bonusType
                 "Bonuses awarded successfully"
@@ -438,8 +460,78 @@ public class EventService {
         userRepository.save(user);
     }
 
+    public BonusResponse revokeBonusesFromEventParticipants(Integer eventId) {
+        String bonusName = "Бонус за участие";
+
+        // 1. Получаем тип бонуса
+        BonusType bonusType = bonusTypeRepository.findByName(bonusName)
+                .orElseThrow(() -> new IllegalArgumentException("Bonus type not found: " + bonusName));
+
+        // 2. Получаем и валидируем событие
+        Event event = validateEventForRevoke(eventId);
+
+        // 3. Получаем историю начисленных бонусов
+        List<EventParticipant> validParticipants = getValidParticipants(eventId);
+
+        // 4. Если нет бонусов - возвращаем соответствующий результат
+        if (validParticipants.isEmpty()) {
+            log.info("No bonuses found for event {}", eventId);
+            return new BonusResponse(
+                    0,
+                    0,
+                    "No bonuses found for event"
+            );
+        }
+
+        // 5. Отменяем бонусы
+        int revokedCount = revokeBonusesForParticipants(validParticipants, bonusType);
+
+        return new BonusResponse(
+                revokedCount,
+                revokedCount * 1000,
+                "Bonuses revoked successfully"
+        );
+    }
+
+    private Event validateEventForRevoke(Integer eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event not found with id: " + eventId));
+    }
+
+    private int revokeBonusesForParticipants(List<EventParticipant> participants, BonusType bonusType) {
+
+        int revokedCount = 0;
+
+        for (EventParticipant participant : participants) {
+            User user = participant.getUser();
+
+            // 1. Находим активные бонусы пользователя для этого события
+            List<UserBonusHistory> activeBonuses = bonusHistoryRepository.findByUserIdAndBonusTypeIdAndIsActive(
+                    user.getId(),
+                    bonusType.getId(),
+                    true);
+
+            // 2. Если есть активные бонусы - отменяем их
+            if (!activeBonuses.isEmpty()) {
+                for (UserBonusHistory bonus : activeBonuses) {
+                    // Помечаем бонус как неактивный
+                    bonus.setActive(false);
+                    bonusHistoryRepository.save(bonus);
+
+                    // Вычитаем бонусы из баланса пользователя
+                    user.setTotalBonusPoints(user.getTotalBonusPoints() - bonus.getAmount());
+                    userRepository.save(user);
+
+                    revokedCount++;
+                }
+            }
+        }
+
+        return revokedCount;
+    }
+
     // DTO для ответа
-    public record BonusAwardResponse(
+    public record BonusResponse(
             int participantsCount,
             int totalBonuses,
             String message

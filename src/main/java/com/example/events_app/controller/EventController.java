@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -312,11 +313,14 @@ public class EventController {
     @Operation(summary = "Обновить статус 'проведено'", description = "Обновляет поле 'conducted'")
     @ApiResponse(responseCode = "200", description = "OK")
     @PreAuthorize("hasAuthority('users:write')")
-    public ResponseEntity<EventService.BonusAwardResponse> updateConducted(@PathVariable Integer id) {
-        eventService.updateConductedStatus(id, true);
+    public ResponseEntity<?> updateConducted(@PathVariable Integer id,
+                                                                           @RequestParam boolean conducted) {
+        EventService.BonusResponse response = eventService.updateConductedStatus(id, conducted);
 
-        EventService.BonusAwardResponse response =
-                eventService.awardBonusesToEventParticipants(id);
+        if (response == null) {
+            return ResponseEntity.ok().body(Collections.singletonMap("message", "Status not changed"));
+        }
+
         return ResponseEntity.ok(response);
     }
 
