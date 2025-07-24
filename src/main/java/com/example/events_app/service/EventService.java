@@ -411,7 +411,7 @@ public class EventService {
 
         return new BonusResponse(
                 awardedCount,
-                awardedCount * 1000, // Используем amount из bonusType
+                awardedCount * 30, // Используем amount из bonusType
                 "Bonuses awarded successfully"
         );
     }
@@ -437,7 +437,7 @@ public class EventService {
     private int awardBonusesToParticipants(List<EventParticipant> participants, Event event, BonusType bonusType) {
         participants.forEach(participant -> {
             createBonusHistory(participant.getUser(), event, bonusType);
-            updateUserBalance(participant.getUser(), 1000);
+            updateUserBalance(participant.getUser(), 30);
         });
 
         return participants.size();
@@ -447,7 +447,7 @@ public class EventService {
         UserBonusHistory bonus = new UserBonusHistory();
         bonus.setUser(user);
         bonus.setBonusType(bonusType);
-        bonus.setAmount(1000); // Используем сумму из типа бонуса
+        bonus.setAmount(30); // Используем сумму из типа бонуса
         bonus.setReason("Участие в мероприятии: " + event.getTitle());
         bonus.setCreatedAt(LocalDateTime.now());
         bonus.setActive(true);
@@ -488,7 +488,7 @@ public class EventService {
 
         return new BonusResponse(
                 revokedCount,
-                revokedCount * 1000,
+                revokedCount * 30,
                 "Bonuses revoked successfully"
         );
     }
