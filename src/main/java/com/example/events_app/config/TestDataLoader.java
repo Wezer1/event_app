@@ -119,8 +119,8 @@ public class TestDataLoader implements CommandLineRunner {
                         login,
                         "password",
                         Role.USER,
-                        email,
-                        phone
+                        phone,
+                        email
                 );
 
                 User user = userRegisterRequestMapper.toEntity(dto);
@@ -155,8 +155,8 @@ public class TestDataLoader implements CommandLineRunner {
                         login,
                         "orgpass",
                         Role.ORGANIZATION,
-                        email,
-                        phone
+                        phone,
+                        email
                 );
                 User organization = userRegisterRequestMapper.toEntity(orgDto);
                 userRepository.save(organization);

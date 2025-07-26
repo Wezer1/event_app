@@ -155,14 +155,16 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NoSuchException("Event not found"));
 
-        // 1. Обработка превью
-        if (preview != null && !preview.isEmpty()) {
-            handlePreviewUpdate(event, preview);
-        }
+
 
         // 2. Обработка изображений
         if (eventDTO.getCurrentImages() != null) {
             handleImagesUpdate(event, eventDTO.getCurrentImages(), newImages);
+        }
+
+        // 1. Обработка превью
+        if (preview != null && !preview.isEmpty()) {
+            handlePreviewUpdate(event, preview);
         }
 
         // 3. Обновление полей события
